@@ -31,13 +31,13 @@ int seqqueue_insert(struct SeqQueue* seqqueue, int data) {
 
 SeqQueue* seqqueue_create(int sequence_length, int* sequence, int init_time) {
   struct SeqQueue* seqqueue = malloc(sizeof(struct SeqQueue));
-  seqqueue->MAX = sequence_length + 2;
+  seqqueue->MAX = sequence_length + 3;
   seqqueue->front = 0;
   seqqueue->rear = -1;
   seqqueue->item_count = 0;
   seqqueue->array = malloc((sequence_length+2) * sizeof(int));
   seqqueue_insert(seqqueue, init_time);
-  for (int i = 0; i < sequence_length; i++) {
+  for (int i = 0; i < sequence_length + 1; i++) {
     seqqueue_insert(seqqueue, sequence[i]);
   }
   seqqueue_insert(seqqueue, 0);
@@ -76,7 +76,7 @@ struct Process {
   // Parte de la modelacion de los tiempos de rady o waiting para procesos //
   struct SeqQueue *sequence;
   int quantum;
-  int current_time;
+  int current_time; // Tiempo total
   int init_time;
   bool in_queue;
   bool initialized;
@@ -163,6 +163,14 @@ struct Process* process_idle() {
   idle_process->response_time = 0;
   idle_process->waiting_time = 0;
   return idle_process;
+}
+
+void update_state (struct Process* process, int time) {
+
+
+
+
+  return;
 }
 
 // PROCESS

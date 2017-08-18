@@ -7,11 +7,14 @@
 #include "structs.c"
 
 
+// --------------------------  PARSER  -----------------------------------
+
 int parse_file (FILE* file, struct Process** process_array, struct Queue* queue) {
 
   char process_char[2000];
   char process_name[256];
-  int priority, init_time;
+  int priority;
+  int init_time;
   int pid = 1;
   int count;
   int last_space = 0;
@@ -42,7 +45,7 @@ int parse_file (FILE* file, struct Process** process_array, struct Queue* queue)
     int sequence[1000] = {};
     int seq_index = 0;
     //Desde el espacio despues de N seleccionamos los tiempos de la secuencia
-    for (int i = last_space + 1; i < process_char_length ; i++) {
+    for (int i = last_space + 1; i < process_char_length; i++) {
       if (process_char[i] != 10 &&  process_char[i] != 32) {
         sequence[seq_index] = atoi(&process_char[i]);
         seq_index++;
@@ -54,14 +57,29 @@ int parse_file (FILE* file, struct Process** process_array, struct Queue* queue)
     };
 
     struct Process* process = process_create(pid, priority, process_name, 2,
-                                            sequence, init_time,N);
+                                            sequence, init_time, N);
     process_array[pid] = process;
-    //queue_insert(queue, process);
+    queue_insert(queue, process);
     pid++;
   };
   fclose(file);
   return 0;
 };
+
+// --------------------------  FCFS  -----------------------------------
+
+Process* fcfs(struct Queue* queue) {
+
+  struct Process* process = queue_get_front(queue);
+
+  return process;
+}
+
+// --------------------------  ROUNDROBIN  -----------------------------------
+
+
+// --------------------------  PRIORITY  -----------------------------------
+
 
 
 // --------------------------  MAIN  -----------------------------------
@@ -97,6 +115,7 @@ int main(int argc, char *argv[]) {
 
   char process_char_counter[2000];
   int process_number = 0;
+  int simulation_time = 0;
 
 
   //      CREACIÓN QUEUE Y ARRAYPROCESS
@@ -117,6 +136,36 @@ int main(int argc, char *argv[]) {
 
   parse_file(file, process_array, queue);
 
+  queue_process_print(queue);
+
+  printf("\n\n ----- SIMULATION ----- \n\n");
+
+  while (!queue_is_empty(queue)){
+
+    // 1. Revisar estado de procesos y cambiarlos
+
+    if (strcmp(argv[1], "fcfs")) {
+
+      // 2. Revisar si el primero esta en READY
+      // 2.a if TRUE
+      //    se ejecuta
+      // 2.b else
+      //    pass
+
+      
+
+    }
+    else if (strcmp(argv[1], "roundrobin")) {
+
+    }
+    else {
+
+    }
+
+    simulation_time++;
+
+  }
 
   return 0;
+
 };
