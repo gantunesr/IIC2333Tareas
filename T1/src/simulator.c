@@ -143,39 +143,57 @@ int main(int argc, char *argv[]) {
 
   printf("\n\n ----- SIMULATION ----- \n\n");
 
-  while (!queue_is_empty(waiting_queue)){
+  while (!(queue_is_empty(waiting_queue)) || (!queue_is_empty(ready_queue))){
     // 1. Revisar estado de procesos y cambiarlos
-    if (!queue_is_empty(waiting_queue)) {
-      queue_update_waiting(waiting_queue, ready_queue, simulation_time);        
+      for (int i = 0; i < waiting_queue->item_count; i++){
+        struct Process* process = waiting_queue->array[i];
+        process->current_time++;
+        process->waiting_time++;
+        // Revisar si ya comenzo alguna vez
+        if (process->init_time == simulation_time){
+          // Cambiar de waiting a ready
+          process->state = 1;
+          printf("El proceso %s paso de WAITING a READY\n", process->name);
+          // Removerlo de waiting_queue
+          remove_element(waiting_queue, i, waiting_queue->item_count);
+          // Añadirlo al ready_queue
+          queue_insert(ready_queue, process);       
+        }
+        else {
+          struct SeqQueue* seqqueue = process->sequence;
+          int first = seqqueue_get_first(seqqueue);
+          first--;
+          if (first == 0){
+            seqqueue_pop_first(seqqueue);
+            process->state = 1;
+            printf("El proceso %s paso de WAITING a READY\n", process->name);
+            // Removerlo de waiting_queue
+            remove_element(waiting_queue, i, waiting_queue->item_count);
+            // Añadirlo al ready_queue
+            queue_insert(ready_queue, process);   
+          }
+        }
       }
-    
-
-    if (strcmp(argv[1], "fcfs")) {
-
-      // 2. Revisar si el primero esta en READY
-      if (!queue_is_empty(ready_queue)){
-        struct Process* ready_process = queue_get_front(ready_queue);
-        ready_process->status = 0
+    printf("item_count de READY: %d\n", ready_queue->item_count);
+    // Ver el siguiente en ser atendido
+    if (!queue_is_empty(ready_queue)){
+      if (strcmp(argv[1], "fcfs")) {
+          struct Process* ready_process = queue_get_front(ready_queue);
+          printf("El proceso %s paso de READY a RUNNING\n", ready_process->name);
+          ready_process->state = 0;
+        }
       }
-      // 2.a if TRUE
-      //    se ejecuta
-      // 2.b else
-      //    pass
+      else if (strcmp(argv[1], "roundrobin")) {
+      }
+      else {
 
-      
-
-    }
-    else if (strcmp(argv[1], "roundrobin")) {
-
-    }
-    else {
-
-    }
+      }
     // Aca ejecutar el proceso
 
     simulation_time++;
-
+    // REVISAR, is_empty siempre retorna true
   }
+  printf("Queue vacia\n");
 
   return 0;
 

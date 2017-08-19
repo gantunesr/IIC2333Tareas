@@ -197,32 +197,13 @@ Queue* queue_create(int MAX) {
 };
 
 bool queue_is_empty(struct Queue* queue) {
-   return queue->front == queue->MAX;
+   // return queue->front == queue->MAX;
+  return queue->item_count == 0;
 };
 
 bool queue_is_full(struct Queue* queue) {
    return queue->rear == queue->MAX-1;
 };
-
-void queue_update(struct Queue* waiting, struct Queue* ready, int sim_time) {
-  int length = waiting->item_count;
-  for (int i = 0; i < length; i++){
-    struct Process* process = waiting->array[i];
-    process->current_time++;
-    if (process->init_time == sim_time){
-      // Cambiar de waiting a ready
-      process->state = 1;
-      // Sacar proceso del queue
-      // queue_remove(waiting, process)
-      // Agregar a ready_queue
-      queue_insert(ready, process)
-    }
-    else {
-      process->waiting_time++
-    }
-  }
-return;
-}
 
 void queue_insert(struct Queue* queue, struct Process* process) {
   int MAX = queue->MAX;
@@ -244,7 +225,15 @@ void queue_insert(struct Queue* queue, struct Process* process) {
   process->in_queue = 1;
   queue->array[++(queue->rear)] = process;
   queue->item_count++;
-};
+}
+
+void remove_element(struct Queue* waiting, int index, int array_length){   
+   for(int i = index; i < array_length - 1; i++) {
+    waiting->array[i] = waiting->array[i + 1];
+  }
+  waiting->rear--;
+  waiting->item_count--;
+}
 
 struct Process* queue_pop_front(struct Queue* queue) {
    struct Process* front_process = queue -> array[(queue -> front)++];
