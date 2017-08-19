@@ -73,7 +73,7 @@ struct Process {
   char *name;
   // 0 RUNNING ; 1 READY ; 2 WAITING ; 3 DEAD
   char state;
-  // Parte de la modelacion de los tiempos de rady o waiting para procesos //
+  // Parte de la modelacion de los tiempos de ready o waiting para procesos //
   struct SeqQueue *sequence;
   int quantum;
   int current_time; // Tiempo total
@@ -203,6 +203,26 @@ bool queue_is_empty(struct Queue* queue) {
 bool queue_is_full(struct Queue* queue) {
    return queue->rear == queue->MAX-1;
 };
+
+void queue_update(struct Queue* waiting, struct Queue* ready, int sim_time) {
+  int length = waiting->item_count;
+  for (int i = 0; i < length; i++){
+    struct Process* process = waiting->array[i];
+    process->current_time++;
+    if (process->init_time == sim_time){
+      // Cambiar de waiting a ready
+      process->state = 1;
+      // Sacar proceso del queue
+      // queue_remove(waiting, process)
+      // Agregar a ready_queue
+      queue_insert(ready, process)
+    }
+    else {
+      process->waiting_time++
+    }
+  }
+return;
+}
 
 void queue_insert(struct Queue* queue, struct Process* process) {
   int MAX = queue->MAX;

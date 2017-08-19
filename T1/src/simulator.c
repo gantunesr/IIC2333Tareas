@@ -129,24 +129,34 @@ int main(int argc, char *argv[]) {
   process_number++; // por proceso idle
   struct  Process** process_array = malloc(process_number * sizeof(Process*));
 
-  Queue* queue = queue_create(process_number);
+  //CRIS EDIT --> Una waiting_queue y una ready_queue
+  Queue* waiting_queue = queue_create(process_number);
+  Queue* ready_queue = queue_create(0);
+  //CRIS EDIT
 
   //creacion del proceso idle
   process_array[0] = process_idle();
 
-  parse_file(file, process_array, queue);
+  parse_file(file, process_array, waiting_queue);
 
-  queue_process_print(queue);
+  queue_process_print(waiting_queue);
 
   printf("\n\n ----- SIMULATION ----- \n\n");
 
-  while (!queue_is_empty(queue)){
-
+  while (!queue_is_empty(waiting_queue)){
     // 1. Revisar estado de procesos y cambiarlos
+    if (!queue_is_empty(waiting_queue)) {
+      queue_update_waiting(waiting_queue, ready_queue, simulation_time);        
+      }
+    
 
     if (strcmp(argv[1], "fcfs")) {
 
       // 2. Revisar si el primero esta en READY
+      if (!queue_is_empty(ready_queue)){
+        struct Process* ready_process = queue_get_front(ready_queue);
+        ready_process->status = 0
+      }
       // 2.a if TRUE
       //    se ejecuta
       // 2.b else
@@ -161,6 +171,7 @@ int main(int argc, char *argv[]) {
     else {
 
     }
+    // Aca ejecutar el proceso
 
     simulation_time++;
 
