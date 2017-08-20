@@ -41,8 +41,15 @@ SeqQueue* seqqueue_create(int sequence_length, int* sequence, int init_time) {
     seqqueue_insert(seqqueue, sequence[i]);
   }
   seqqueue_insert(seqqueue, 0);
+  // Hay que restar 1 porque al agregar el 0 al final se esta "agrandando" la queue
+  seqqueue->item_count--;
   return seqqueue;
 };
+
+void seqqueue_decrease_first(struct SeqQueue* seqqueue){
+  seqqueue->array[seqqueue->front]--;
+  return;
+}
 
 int seqqueue_get_first(struct SeqQueue* seqqueue) {
   return seqqueue->array[seqqueue->front];
@@ -73,7 +80,7 @@ struct Process {
   char *name;
   // 0 RUNNING ; 1 READY ; 2 WAITING ; 3 DEAD
   char state;
-  // Parte de la modelacion de los tiempos de rady o waiting para procesos //
+  // Parte de la modelacion de los tiempos de ready o waiting para procesos //
   struct SeqQueue *sequence;
   int quantum;
   int current_time; // Tiempo total
@@ -165,14 +172,6 @@ struct Process* process_idle() {
   return idle_process;
 }
 
-void update_state (struct Process* process, int time) {
-
-
-
-
-  return;
-}
-
 // PROCESS
 
 // QUEUE
@@ -197,7 +196,8 @@ Queue* queue_create(int MAX) {
 };
 
 bool queue_is_empty(struct Queue* queue) {
-   return queue->front == queue->MAX;
+   // return queue->front == queue->MAX;
+  return queue->item_count == 0;
 };
 
 bool queue_is_full(struct Queue* queue) {
@@ -224,7 +224,16 @@ void queue_insert(struct Queue* queue, struct Process* process) {
   process->in_queue = 1;
   queue->array[++(queue->rear)] = process;
   queue->item_count++;
-};
+}
+
+void remove_element(struct Queue* waiting, int index, int array_length){   
+  for(int i = index; i < array_length - 1; i++) {
+    waiting->array[i] = waiting->array[i + 1];
+  }
+  waiting->rear--;
+  waiting->item_count--;
+  return;
+}
 
 struct Process* queue_pop_front(struct Queue* queue) {
    struct Process* front_process = queue -> array[(queue -> front)++];
