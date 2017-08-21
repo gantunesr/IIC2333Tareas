@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
   struct Process* running_process;
   bool is_running = 0;
 
-  while (!(queue_is_empty(waiting_queue)) || (!queue_is_empty(ready_queue))){
+  while (!queue_is_empty(waiting_queue) || !queue_is_empty(ready_queue) || is_running){
     // Primero deberiamos sumar 1 al current time de los que estan ready
 
     // 1. Revisar estado de procesos y cambiarlos
@@ -226,19 +226,21 @@ int main(int argc, char *argv[]) {
             running_process->CPU_selected_times++;
             is_running = 1;
           }
-        }
 
         else if (!strcmp(argv[1], "roundrobin")) {
+          
         }
 
         else {
-
         }
+      }
+      else{
+        // Deberiamos llamar al idle, pero por ahora tengo que termine
+      }  
     }
 
     simulation_time++;
   }
-  // Deberiamos llamar al idle, pero por ahora tengo que termine
   printf("Queue vacia\n");
 
   return 0;

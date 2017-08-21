@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include <math.h>
 
 // SEQUENCE QUEUE
 
@@ -118,6 +119,15 @@ Process* process_create (int PID, int priority, char *name, char state, int *seq
   process->waiting_time = 0;
   return process;
 };
+
+void get_quantum(struct Process* process, int constant){
+  int new_priority;
+  int old_priority = process->priority;
+  float exponent = old_priority / constant;
+  //new_priority = old_priority * constant + pow(-1, exponent) * old_priority;
+  printf("%d\n", new_priority);
+  return;
+}
 
 void process_print (struct Process* process) {
   printf("-------\n");
