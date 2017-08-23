@@ -83,6 +83,7 @@ struct Process {
   // Parte de la modelacion de los tiempos de ready o waiting para procesos //
   struct SeqQueue *sequence;
   int quantum;
+  int actual_q;
   int current_time; // Tiempo total
   int init_time;
   bool in_queue;
@@ -116,6 +117,7 @@ Process* process_create (int PID, int priority, char *name, char state, int *seq
   process->CPU_processed = 0;
   process->response_time = 0;
   process->waiting_time = 0;
+  process->actual_q = 0;
   return process;
 };
 
