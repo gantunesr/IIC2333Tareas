@@ -168,11 +168,10 @@ int main(int argc, char *argv[]) {
   process_number++; // por proceso idle
   struct  Process** process_array = malloc(process_number * sizeof(Process*));
 
-  //CRIS EDIT --> Una waiting_queue y una ready_queue
+  // Creacion de queues
   Queue* waiting_queue = queue_create(process_number);
   Queue* ready_queue = queue_create(0);
   Queue* end_queue = queue_create(0);
-  //CRIS EDIT
 
   //creacion del proceso idle
   process_array[0] = process_idle();
@@ -189,7 +188,7 @@ int main(int argc, char *argv[]) {
   struct Process* running_process;
   bool is_running = 0;
 
-  while (!(queue_is_empty(waiting_queue)) || (!queue_is_empty(ready_queue))){
+  while (!queue_is_empty(waiting_queue) || !queue_is_empty(ready_queue) || is_running){
     // Primero deberiamos sumar 1 al current time de los que estan ready
 
     // 1. Revisar estado de procesos y cambiarlos
@@ -240,20 +239,31 @@ int main(int argc, char *argv[]) {
         seqqueue_pop_first(running_process->sequence);
         // Verificamos si termino
         if (seqqueue_is_empty(running_process->sequence)){
-            printf("El proceso %s paso de RUNNING a DEAD en la iteración %d\n",
-                    running_process->name, simulation_time);
-            running_process->state = DEAD;
-            queue_insert(end_queue, running_process);
+          printf("El proceso %s paso de RUNNING a DEAD en la iteración %d\n",
+                  running_process->name, simulation_time);
+          running_process->state = DEAD;
+          queue_insert(end_queue, running_process);
         }
         else {
-            printf("El proceso %s paso de RUNNING a WAITING en la iteración %d\n",
-                    running_process->name, simulation_time);
-            running_process->state = WAITING;
-            running_process->CPU_blocked_times++;  //No estoy seguro si es este
-            // Lo agregamos a waiting_queue
-            queue_insert(waiting_queue, running_process);
+          printf("El proceso %s paso de RUNNING a WAITING en la iteración %d\n",
+                  running_process->name, simulation_time);
+          running_process->state = WAITING;
+          running_process->CPU_blocked_times++;  //No estoy seguro si es este
+          // Lo agregamos a waiting_queue
+          queue_insert(waiting_queue, running_process);
         }
-        is_running = 0;
+      }
+      if (!strcmp(argv[1], "roundrobin") && is_running){
+        running_process->actual_q--;
+        if (!running_process->actual_q){
+          printf("El proceso %s paso de RUNNING a READY POR RR en la iteración %d\n",
+                running_process->name, simulation_time);
+          running_process->state = READY;
+          running_process->CPU_blocked_times++;  //No estoy seguro si es este
+          // Lo agregamos a waiting_queue
+          queue_insert(ready_queue, running_process);
+          is_running = 0;
+        }
       }
     }
 
@@ -287,9 +297,7 @@ int main(int argc, char *argv[]) {
   }
   // Deberiamos llamar al idle, pero por ahora tengo que termine
   printf("Queue vacia\n");
-  while(1){
-    pause();
-  }
+  printf("Dead: %d\n", end_queue->item_count);
   // VACIAR MEMORIA
   // BUSCAR SIGINT o SIGTERM para ctrl+c
   return 0;
