@@ -80,9 +80,16 @@ int parse_file (FILE* file, struct Process** process_array, struct Queue* queue)
 // --------------------------  ROUNDROBIN  -----------------------------------
 
 
-int roundrobin_quantum(struct Process* process, int quantum){
-  int r = round((double)process->priority/quantum);
-  return process->priority * quantum + pow(-1, r) * process->priority;
+void roundrobin_quantum(struct Queue* queue, int quantum){
+  struct Process* process;
+  for (int i = 0; i < queue->item_count; i++){
+    process = queue->array[i];
+    int r = round((double)process->priority/quantum);
+    process->priority = process->priority * quantum + pow(-1, r) * process->priority;
+    process->quantum = process->priority / 64;
+    if (process->quantum <= 0){process->quantum = 1;}
+  }
+  return;
 }
 
 
@@ -154,14 +161,17 @@ int main(int argc, char *argv[]) {
   //CRIS EDIT --> Una waiting_queue y una ready_queue
   Queue* waiting_queue = queue_create(process_number);
   Queue* ready_queue = queue_create(0);
+  Queue* end_queue = queue_create(0);
   //CRIS EDIT
 
   //creacion del proceso idle
   process_array[0] = process_idle();
 
   parse_file(file, process_array, waiting_queue);
-
   queue_process_print(waiting_queue);
+  if (!strcmp(argv[1], "roundrobin")){
+    roundrobin_quantum(waiting_queue, quantum);
+  }
 
   printf("\n\n ----- SIMULATION ----- \n\n");
 
@@ -181,8 +191,9 @@ int main(int argc, char *argv[]) {
       // Revisar los que entran por primera vez
       if (process->init_time == simulation_time){
         // Cambiar de waiting a ready
-        //printf("En el tiempo %d\n", simulation_time);
-        printf("El proceso %s paso de WAITING a READY\n", process->name);
+        
+        printf("El proceso %s paso de WAITING a READY en la iteración %d\n",
+                process->name, simulation_time);
         process->state = 1;
         // Removerlo de waiting_queue
         remove_element(waiting_queue, i, waiting_queue->item_count);
@@ -195,16 +206,16 @@ int main(int argc, char *argv[]) {
       else if (process->init_time <= simulation_time){
         seqqueue_decrease_first(process->sequence);
         if (seqqueue_get_first(process->sequence) == 0){
-          // Cambiar de waiting a ready
-          //printf("En el tiempo %d\n", simulation_time);
-          printf("El proceso %s paso de WAITING a READY\n", process->name);
-          process->state = 1;
-          // Removerlo de waiting_queue
-          remove_element(waiting_queue, i, waiting_queue->item_count);
-          // Añadirlo al ready_queue
-          queue_insert(ready_queue, process);
-          // Sacamos el numero de la secuencia
-          seqqueue_pop_first(process->sequence);
+            // Cambiar de waiting a ready
+            printf("El proceso %s paso de WAITING a READY en la iteración %d\n",
+                    process->name, simulation_time);
+            process->state = 1;
+            // Removerlo de waiting_queue
+            remove_element(waiting_queue, i, waiting_queue->item_count);
+            // Añadirlo al ready_queue
+            queue_insert(ready_queue, process);
+            // Sacamos el numero de la secuencia
+            seqqueue_pop_first(process->sequence);
         }
       }
     }
@@ -219,17 +230,18 @@ int main(int argc, char *argv[]) {
         seqqueue_pop_first(running_process->sequence);
         // Verificamos si termino
         if (seqqueue_is_empty(running_process->sequence)){
-          //printf("En el tiempo %d\n", simulation_time);
-          printf("El proceso %s paso de RUNNING a DEAD\n", running_process->name);
-          running_process->state = DEAD;
+            printf("El proceso %s paso de RUNNING a DEAD en la iteración %d\n",
+                    running_process->name, simulation_time);
+            running_process->state = DEAD;
+            queue_insert(end_queue, running_process);
         }
         else {
-          //printf("En el tiempo %d\n", simulation_time);
-          printf("El proceso %s paso de RUNNING a WAITING\n", running_process->name);
-          running_process->state = WAITING;
-          running_process->CPU_blocked_times++;  //No estoy seguro si es este
-          // Lo agregamos a waiting_queue
-          queue_insert(waiting_queue, running_process);
+            printf("El proceso %s paso de RUNNING a WAITING en la iteración %d\n",
+                    running_process->name, simulation_time);
+            running_process->state = WAITING;
+            running_process->CPU_blocked_times++;  //No estoy seguro si es este
+            // Lo agregamos a waiting_queue
+            queue_insert(waiting_queue, running_process);
         }
         is_running = 0;
       }
@@ -238,40 +250,35 @@ int main(int argc, char *argv[]) {
     // Aca entra el scheduler
     else {
 
-      // Ver el siguiente en ser atendido
-      if (!queue_is_empty(ready_queue)){
-        if (!strcmp(argv[1], "fcfs")) {
-          running_process = queue_pop_front(ready_queue);
-          roundrobin_quantum(running_process, quantum); // ¿Por que roundrobin si este es el fcfs?
-          //printf("En el tiempo %d\n", simulation_time);
-          printf("El proceso %s paso de READY a RUNNING en la iteración %d\n\n", running_process->name, simulation_time);
-          running_process->state = RUNNING; // RUNNING
-          running_process->CPU_selected_times++;
-          is_running = READY;
-          }
-        }
-
-        else if (!strcmp(argv[1], "roundrobin")) {
-
-        }
-
-        else {
-
-            index = highest_priority_process_index(ready_queue);
-            running_process = get_element(ready_queue, index, ready_queue->MAX);
-            printf("El proceso %s paso de READY a RUNNING en la iteración %d\n", running_process->name, simulation_time);
-            running_process->state = RUNNING; // RUNNING
+        // Ver el siguiente en ser atendido
+        if (!queue_is_empty(ready_queue)){
+            if (!strcmp(argv[1], "fcfs")) {
+                running_process = queue_pop_front(ready_queue);
+                //printf("En el tiempo %d\n", simulation_time);
+                
+                }
+            // RR y priority entran al else
+            else {
+                index = highest_priority_process_index(ready_queue);
+                running_process = get_element(ready_queue, index, ready_queue->item_count);
+            }
+            if (!strcmp(argv[1], "roundrobin")){
+                running_process->actual_q = running_process->quantum;
+            }
+            printf("El proceso %s paso de READY a RUNNING en la iteración %d\n",
+                        running_process->name, simulation_time);
+            running_process->state = RUNNING;
             running_process->CPU_selected_times++;
             is_running = READY;
-
-        }
+      }
     }
 
     simulation_time++;
   }
   // Deberiamos llamar al idle, pero por ahora tengo que termine
   printf("Queue vacia\n");
-
+  // VACIAR MEMORIA
+  // BUSCAR SIGINT o SIGTERM para ctrl+c
   return 0;
 
 };
