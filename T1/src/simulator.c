@@ -13,6 +13,8 @@
 #define WAITING 2;
 #define DEAD 3;
 
+void INTHandler(int);
+
 
 // --------------------------  PARSER  -----------------------------------
 
@@ -108,12 +110,20 @@ int highest_priority_process_index(struct Queue* queue) {
   return index;
 }
 
+// --------------------------  INTHANDLER ---------------------------------
+
+void INTHandler(int sig){
+    signal(sig, SIG_IGN);
+    printf("\nTendremos que poner variables globales aca para acceder a los arrays :(\n");
+    exit(0);
+}
 
 
 // --------------------------  MAIN  -----------------------------------
 
 int main(int argc, char *argv[]) {
 
+  signal(SIGINT, INTHandler);
   // Variable quantum por defecto: 3
   int quantum = 3;
   if (argv[3] != NULL) {
@@ -277,6 +287,9 @@ int main(int argc, char *argv[]) {
   }
   // Deberiamos llamar al idle, pero por ahora tengo que termine
   printf("Queue vacia\n");
+  while(1){
+    pause();
+  }
   // VACIAR MEMORIA
   // BUSCAR SIGINT o SIGTERM para ctrl+c
   return 0;
