@@ -104,7 +104,7 @@ Process* process_create (int PID, int priority, char *name, char state, int *seq
   process->priority = priority;
   process->state = state;
   process->quantum = 0;
-  process->current_time = 0;
+  process->current_time = 0;  // Indica el tiempo actual (A o B) para cambiar de estado
   process->in_queue = 0;
   process->init_time = init_time;
   process->name = malloc(256 * sizeof(char));
@@ -228,13 +228,23 @@ void queue_insert(struct Queue* queue, struct Process* process) {
   queue->item_count++;
 }
 
-void remove_element(struct Queue* waiting, int index, int array_length){   
+void remove_element(struct Queue* queue, int index, int array_length){
   for(int i = index; i < array_length - 1; i++) {
-    waiting->array[i] = waiting->array[i + 1];
+    queue->array[i] = queue->array[i + 1];
   }
-  waiting->rear--;
-  waiting->item_count--;
+  queue->rear--;
+  queue->item_count--;
   return;
+}
+
+struct Process* get_element(struct Queue* queue, int index, int array_length){
+  Process* process = queue->array[index];
+  for(int i = index; i < array_length - 1; i++) {
+    queue->array[i] = queue->array[i + 1];
+  }
+  queue->rear--;
+  queue->item_count--;
+  return process;
 }
 
 struct Process* queue_pop_front(struct Queue* queue) {
