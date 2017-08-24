@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <time.h>
 
-// SEQUENCE QUEUE
 
+// SEQUENCE QUEUE
 struct SeqQueue {
   int MAX;
   int front;
@@ -70,10 +70,8 @@ void seqqueue_print(struct SeqQueue* seqqueue) {
   }
 };
 
-// SEQUENCE QUEUE
 
 // PROCESS
-
 struct Process {
   int PID;
   int priority;
@@ -108,7 +106,7 @@ Process* process_create (int PID, int priority, char *name, char state, int *seq
   process->in_queue = 0;
   process->init_time = init_time;
   process->name = malloc(256 * sizeof(char));
-  strncpy(process->name, name,256);
+  strncpy(process->name, name, 256);
   process->sequence = seqqueue_create(sequence_length, sequence, init_time);
   process->initialized = 0;
   process->CPU_selected_times = 0;
@@ -157,8 +155,16 @@ void process_print_final_info (struct Process* process) {
   }
 };
 
+void process_destroy(struct Process* process) {
+  free(process->name);
+  free(process->sequence->array);
+  free(process->sequence);
+  free(process);
+};
+
+
 struct Process* process_idle() {
-  struct Process* idle_process = malloc(sizeof(Process));
+  Process* idle_process = malloc(sizeof(Process));
   idle_process->name = "IDLE";
   idle_process->PID = 0;
   idle_process->priority = -1;
@@ -174,10 +180,8 @@ struct Process* process_idle() {
   return idle_process;
 }
 
-// PROCESS
 
 // QUEUE
-
 struct Queue {
   int MAX;
   int front;
@@ -267,12 +271,9 @@ void queue_process_print (struct Queue* queue) {
     index++;
   }
   if (index == 0){printf("LA COLA ESTA VACIA\n\n" );}
-
 }
 
 void queue_destroy(struct Queue* queue) {
   free(queue -> array);
   free(queue);
 };
-
-// QUEUE

@@ -29,6 +29,7 @@ int parse_file (FILE* file, struct Process** process_array, struct Queue* queue)
   int last_space = 0;
   int process_char_length = 0 ;
 
+  struct Process* process;
   //iteramos sobre las lineas del archivo
   while (fgets(process_char, 500, file)) {
     last_space = 0;
@@ -65,7 +66,7 @@ int parse_file (FILE* file, struct Process** process_array, struct Queue* queue)
       }
     };
 
-    struct Process* process = process_create(pid, priority, process_name, 2,
+    process = process_create(pid, priority, process_name, 2,
                                             sequence, init_time, N);
     process_array[pid] = process;
     queue_insert(queue, process);
@@ -75,12 +76,7 @@ int parse_file (FILE* file, struct Process** process_array, struct Queue* queue)
   return 0;
 };
 
-// --------------------------  FCFS  -----------------------------------
-
-
-
 // --------------------------  ROUNDROBIN  -----------------------------------
-
 
 void roundrobin_quantum(struct Queue* queue, int quantum){
   struct Process* process;
@@ -93,7 +89,6 @@ void roundrobin_quantum(struct Queue* queue, int quantum){
   }
   return;
 }
-
 
 // --------------------------  PRIORITY  -----------------------------------
 
@@ -117,7 +112,6 @@ void INTHandler(int sig){
     printf("\nTendremos que poner variables globales aca para acceder a los arrays :(\n");
     exit(0);
 }
-
 
 // --------------------------  MAIN  -----------------------------------
 
@@ -171,7 +165,7 @@ int main(int argc, char *argv[]) {
   // Creacion de queues
   Queue* waiting_queue = queue_create(process_number);
   Queue* ready_queue = queue_create(0);
-  Queue* end_queue = queue_create(0);
+  Queue* end_queue = queue_create(process_number);
 
   //creacion del proceso idle
   process_array[0] = process_idle();
@@ -256,7 +250,7 @@ int main(int argc, char *argv[]) {
       if (!strcmp(argv[1], "roundrobin") && is_running){
         running_process->actual_q--;
         if (!running_process->actual_q){
-          printf("El proceso %s paso de RUNNING a READY POR RR en la iteración %d\n",
+          printf("El proceso %s paso de RUNNING a READY en la iteración %d\n",
                 running_process->name, simulation_time);
           running_process->state = READY;
           running_process->CPU_blocked_times++;  //No estoy seguro si es este
@@ -298,6 +292,15 @@ int main(int argc, char *argv[]) {
   // Deberiamos llamar al idle, pero por ahora tengo que termine
   printf("Queue vacia\n");
   printf("Dead: %d\n", end_queue->item_count);
+  queue_destroy(waiting_queue);
+  queue_destroy(ready_queue);
+
+  for (int i = 0; i < end_queue->item_count; i++){
+    process_destroy(end_queue->array[i]);
+  }
+  queue_destroy(end_queue);
+  free(process_array[0]);  // no tiene seqqueue ni name
+  free(process_array);
   // VACIAR MEMORIA
   // BUSCAR SIGINT o SIGTERM para ctrl+c
   return 0;
