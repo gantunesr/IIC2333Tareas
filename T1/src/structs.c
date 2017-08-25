@@ -89,7 +89,6 @@ struct Process {
   int run_time;
   int init_time;
   bool in_queue;
-  bool initialized;
   int CPU_selected_times;
   int CPU_blocked_times;
   int turnaround_time;
@@ -106,24 +105,23 @@ Process* process_create (int PID, int priority, char *name, char state, int *seq
   process->priority = priority;
   process->state = state;
   process->quantum = 0;
-  process->run_time = 0;  // Indica el tiempo actual (A o B) para cambiar de estado
+  process->actual_q = 0;
+  process->run_time = 0;
   process->in_queue = 0;
   process->init_time = init_time;
   process->name = malloc(256 * sizeof(char));
   strncpy(process->name, name, 256);
   process->sequence = seqqueue_create(sequence_length, sequence, init_time);
-  process->initialized = 0;
   process->CPU_selected_times = 0;
   process->CPU_blocked_times = 0;
   process->turnaround_time = 0;
   process->CPU_processed = 0;
   process->response_time = 0;
   process->waiting_time = 0;
-  process->actual_q = 0;
   return process;
 };
 
-void process_print (struct Process* process) {
+void process_print (Process* process) {
   printf("-------\n");
   printf("Proceso: %s\n", process->name);
   if (process->state != -1) {
@@ -150,10 +148,10 @@ void running_process_print(Process* process){
   printf(" PID: %d \n",
         process->PID);
   printf("RUN_TIME: %d\n", process->run_time);
-    printf("Le quedan %d intervalos\n", process->sequence->total_time - process->run_time);
+  printf("Intervalos faltantes: %d\n", process->sequence->total_time - process->run_time);
   }
 
-void process_print_final_info (struct Process* process) {
+void process_print_final_info (Process* process) {
   if (process -> state != -1) {
     printf("Proceso: %s\n", process -> name);
     printf("-------\n");
@@ -167,7 +165,21 @@ void process_print_final_info (struct Process* process) {
   }
 };
 
-void process_destroy(struct Process* process) {
+void interrupted_process(Process* process){
+  printf("Proceso: %s\n", process -> name);
+  printf("-------\n");
+  printf("Run Time: %d\n", process->run_time);
+  printf("Intervalos faltantes: %d\n", process->sequence->total_time - process->run_time);
+  printf("Numero de veces seleccionado por CPU: %d\n", process->CPU_selected_times);
+  printf("Numero de veces bloqueado por CPU: %d\n", process->CPU_blocked_times);
+  printf("Turnaround time: %d\n", process->turnaround_time);
+  printf("Response time: %d\n", process->response_time);
+  printf("Waiting time: %d\n", process->waiting_time);
+  printf("-------\n");
+  printf("\n");
+}
+
+void process_destroy(Process* process) {
   free(process->name);
   free(process->sequence->array);
   free(process->sequence);

@@ -16,6 +16,7 @@
 void INTHandler(int);
 Queue* waiting_queue;
 Queue* ready_queue;
+Queue* end_queue;
 Process** process_array;
 int simulation_time, end_process;
 
@@ -118,13 +119,19 @@ void INTHandler(int sig){
            "FINISHED PROCESS: %d\n\n", simulation_time, end_process);
     printf(" ------ PROCESOS SIN TERMINAR --------\n");
     for (int i = 0; i < waiting_queue->item_count; i++){
-      process_print_final_info(waiting_queue->array[i]);
+      interrupted_process(waiting_queue->array[i]);
       process_destroy(waiting_queue->array[i]);
     }
     for (int i = 0; i < ready_queue->item_count; i++){
-      process_print_final_info(ready_queue->array[i]);
+      interrupted_process(ready_queue->array[i]);
       process_destroy(ready_queue->array[i]);
     }
+    printf(" ------ PROCESOS TERMINADOS --------\n");
+    for (int i = 0; i < end_queue->item_count; i++){
+      process_print_final_info(end_queue->array[i]);
+      process_destroy(end_queue->array[i]);
+    }
+    queue_destroy(end_queue);
     queue_destroy(waiting_queue);
     queue_destroy(ready_queue);
     free(process_array[0]);  // no tiene seqqueue ni name
@@ -185,6 +192,7 @@ int main(int argc, char *argv[]) {
   // Creacion de queues
   waiting_queue = queue_create(process_number);
   ready_queue = queue_create(process_number);
+  end_queue = queue_create(process_number);
 
   //creacion del proceso idle
   process_array[0] = process_idle();
@@ -259,8 +267,8 @@ int main(int argc, char *argv[]) {
           printf("NOTIFICACIÓN: El proceso %s paso de RUNNING a DEAD en la iteración %d\n",
                   running_process->name, simulation_time);
           running_process->turnaround_time = simulation_time - process->init_time;
-          process_print_final_info(running_process);
-          process_destroy(running_process);
+          running_process->state = DEAD;
+          queue_insert(end_queue, running_process);
           end_process++;
         }
         else {
@@ -322,7 +330,12 @@ int main(int argc, char *argv[]) {
   // Deberiamos llamar al idle, pero por ahora tengo que termine
   printf("\n\n -----FIN SIMULATION ----- \n\n");
   printf("SIMULATION TIME: %d\n"
-         "FINISHED PROCESS: %d\n", simulation_time, end_process);
+         "FINISHED PROCESS: %d\n\n", simulation_time, end_process);
+  for (int i = 0; i < end_queue->item_count; i++){
+    process_print_final_info(end_queue->array[i]);
+    process_destroy(end_queue->array[i]);
+  }
+  queue_destroy(end_queue);
   queue_destroy(waiting_queue);
   queue_destroy(ready_queue);
   free(process_array[0]);  // no tiene seqqueue ni name
