@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <math.h>
-#include "structs.c"
+#include "quicksort.c"
 
 
 #define RUNNING 0;
@@ -216,7 +216,7 @@ int main(int argc, char *argv[]) {
 
       // Revisar los que entran por primera vez
       if (process->init_time == simulation_time){
-        
+
         // Cambiar de waiting a ready
         printf("El proceso %s paso de WAITING a READY en la iteración %d\n",
                 process->name, simulation_time);
@@ -295,7 +295,7 @@ int main(int argc, char *argv[]) {
           if (!strcmp(argv[1], "fcfs")) {
             running_process = queue_pop_front(ready_queue);
             //printf("En el tiempo %d\n", simulation_time);
-            
+
             }
           // RR y priority entran al else
           else {
