@@ -1,1 +1,0 @@
-* Ver proceso IDLE

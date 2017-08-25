@@ -142,11 +142,16 @@ void process_print (Process* process) {
     printf("-------\n");
     printf("\n");
   }
+  else {
+    printf("Numero de veces seleccionado por CPU: %d\n", process->CPU_selected_times);
+    printf("Run time: %d\n", process->run_time);
+    printf("-------\n");
+    printf("\n");
+  }
 };
 
 void running_process_print(Process* process){
-  printf(" PID: %d \n",
-        process->PID);
+  printf(" PID: %d \n", process->PID);
   printf("RUN_TIME: %d\n", process->run_time);
   printf("Intervalos faltantes: %d\n", process->sequence->total_time - process->run_time);
   }
@@ -202,7 +207,6 @@ struct Process* process_idle() {
   idle_process->waiting_time = 0;
   return idle_process;
 }
-
 
 // QUEUE
 struct Queue {

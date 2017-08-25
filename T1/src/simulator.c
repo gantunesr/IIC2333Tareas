@@ -176,7 +176,6 @@ int main(int argc, char *argv[]) {
   int process_number = 0;
   simulation_time = 0;
   end_process = 0;
-  int index = 0; // priority
 
   //      CREACIÓN QUEUE Y ARRAY PROCESS
 
@@ -290,6 +289,9 @@ int main(int argc, char *argv[]) {
           // Lo agregamos a waiting_queue
           queue_insert(ready_queue, running_process);
           is_running = 0;
+          if (!queue_is_empty(ready_queue)) {
+            process_array[0]->CPU_selected_times++;
+          }
         }
       }
     }
@@ -304,8 +306,10 @@ int main(int argc, char *argv[]) {
             }
           // RR y priority entran al else
           else {
-            index = highest_priority_process_index(ready_queue);
-            running_process = get_element(ready_queue, index, ready_queue->item_count);
+            if (ready_queue->item_count > 1) {
+              quickSort(ready_queue, 0, ready_queue->item_count-1);
+            }
+            running_process = queue_pop_front(ready_queue);
           }
           if (!strcmp(argv[1], "roundrobin")){
             running_process->actual_q = running_process->quantum;
@@ -320,9 +324,13 @@ int main(int argc, char *argv[]) {
             running_process->response_time = simulation_time - running_process->init_time;
           }
       }
-      //else {
-      //  running_process = process_array[0];
-      //}
+      else {
+        process_array[0]->CPU_selected_times++;
+      }
+    }
+
+    if (!is_running && queue_is_empty(ready_queue)) {
+      process_array[0]->run_time++;
     }
 
     simulation_time++;
@@ -331,6 +339,7 @@ int main(int argc, char *argv[]) {
   printf("\n\n -----FIN SIMULATION ----- \n\n");
   printf("SIMULATION TIME: %d\n"
          "FINISHED PROCESS: %d\n\n", simulation_time, end_process);
+  process_print(process_array[0]);
   for (int i = 0; i < end_queue->item_count; i++){
     process_print_final_info(end_queue->array[i]);
     process_destroy(end_queue->array[i]);
