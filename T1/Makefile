@@ -10,7 +10,7 @@ VM = -std=c99
 
 # the build target executable:
 TARGET = ./src/simulator
-EXECNAME = simulate
+EXECNAME = simulator
 
 all: $(TARGET)
 
