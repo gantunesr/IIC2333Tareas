@@ -169,6 +169,7 @@ int main(int argc, char *argv[]) {
   int process_number = 0;
   simulation_time = 0;
   end_process = 0;
+  int index = 0; // priority
 
   //      CREACIÓN QUEUE Y ARRAY PROCESS
 
@@ -298,7 +299,8 @@ int main(int argc, char *argv[]) {
           // RR y priority entran al else
           else {
             quickSort(ready_queue, 0, ready_queue->item_count - 1);
-            running_process = queue_pop_front(ready_queue);
+            index = highest_priority_process_index(ready_queue);
+            running_process = get_element(ready_queue, index, ready_queue->item_count);
           }
           if (!strcmp(argv[1], "roundrobin")){
             running_process->actual_q = running_process->quantum;
