@@ -72,6 +72,7 @@ int parse_file (FILE* file, struct Process** process_array, struct Queue* queue)
 
     process = process_create(pid, priority, process_name, 2,
                                             sequence, init_time, N);
+    printf("==> P: %s | SL: %d\n", process_name, process_char_length);
     process_array[pid] = process;
     queue_insert(queue, process);
     pid++;
@@ -169,7 +170,7 @@ int main(int argc, char *argv[]) {
   int process_number = 0;
   simulation_time = 0;
   end_process = 0;
-  int index = 0; // priority
+  // int index = 0; // priority
 
   //      CREACIÓN QUEUE Y ARRAY PROCESS
 
@@ -195,140 +196,7 @@ int main(int argc, char *argv[]) {
     roundrobin_quantum(waiting_queue, quantum);
   }
 
-  printf("\n\n ----- SIMULATION ----- \n\n");
+  printf("IC: %d\n", waiting_queue->item_count);
 
-  Process* process;
-  Process* running_process;
-  bool is_running = 0;
-
-  while (!queue_is_empty(waiting_queue) || !queue_is_empty(ready_queue) || is_running){
-    // Primero sumamos waiting time a los que estan ready
-    for (int i = 0; i < waiting_queue->item_count; i++){
-      process = waiting_queue->array[i];
-      process->waiting_time++;
-      process->turnaround_time = simulation_time - process->response_time;
-    }
-    // 1. Revisar estado de procesos y cambiarlos
-    for (int i = 0; i < waiting_queue->item_count; i++){
-      process = waiting_queue->array[i];
-      process->turnaround_time = simulation_time - process->response_time;
-      process->waiting_time++;
-
-      // Revisar los que entran por primera vez
-      if (process->init_time == simulation_time){
-
-        // Cambiar de waiting a ready
-        printf("NOTIFICACIÓN: El proceso %s paso de WAITING a READY en la iteración %d\n",
-                process->name, simulation_time);
-        process->state = 1;
-        // Removerlo de waiting_queue
-        remove_element(waiting_queue, i, waiting_queue->item_count);
-        // Añadirlo al ready_queue
-        queue_insert(ready_queue, process);
-        printf("Saca el primer A\n");
-        printf("process->sequence->array[0]: %d\n", process->sequence->array[0]);
-        seqqueue_pop_first(process->sequence);
-      }
-
-      // Revisar los que ya pasaron su init_time
-      else if (process->init_time <= simulation_time){
-        seqqueue_decrease_first(process->sequence);
-        if (seqqueue_get_first(process->sequence) == 0){
-            // Cambiar de waiting a ready
-            printf("NOTIFICACIÓN: El proceso %s paso de WAITING a READY en la iteración %d\n",
-                    process->name, simulation_time);
-            process->state = 1;
-            // Removerlo de waiting_queue
-            remove_element(waiting_queue, i, waiting_queue->item_count);
-            // Añadirlo al ready_queue
-            queue_insert(ready_queue, process);
-            // Sacamos el numero de la secuencia
-            seqqueue_pop_first(process->sequence);
-        }
-      }
-    }
-
-    // Si hay alguno corriendo
-    if (is_running){
-      seqqueue_decrease_first(running_process->sequence);
-      // Verificamos si termina su ciclo
-      if (seqqueue_get_first(running_process->sequence) == 0){
-        is_running = 0;
-        // Sacamos el numero de la secuencia
-        seqqueue_pop_first(running_process->sequence);
-        // Verificamos si termino
-        if (seqqueue_is_empty(running_process->sequence)){
-          printf("NOTIFICACIÓN: El proceso %s paso de RUNNING a DEAD en la iteración %d\n",
-                  running_process->name, simulation_time);
-          running_process->turnaround_time = simulation_time - process->response_time;
-          process_print_final_info(running_process);
-          process_destroy(running_process);
-          end_process++;
-        }
-        else {
-          printf("NOTIFICACIÓN: El proceso %s paso de RUNNING a WAITING en la iteración %d\n",
-                  running_process->name, simulation_time);
-          running_process->state = WAITING;
-          running_process->CPU_blocked_times++;
-          // Lo agregamos a waiting_queue
-          queue_insert(waiting_queue, running_process);
-        }
-      }
-      if (!strcmp(argv[1], "roundrobin") && is_running){
-        running_process->actual_q--;
-        if (!running_process->actual_q){
-          printf("NOTIFICACIÓN: El proceso %s paso de RUNNING a READY en la iteración %d\n",
-                running_process->name, simulation_time);
-          running_process->state = READY;
-          running_process->CPU_blocked_times++;  //No estoy seguro si es este
-          // Lo agregamos a waiting_queue
-          queue_insert(ready_queue, running_process);
-          is_running = 0;
-        }
-      }
-    }
-
-    // Aca entra el scheduler
-    else {
-        // Ver el siguiente en ser atendido
-        if (!queue_is_empty(ready_queue)){
-          if (!strcmp(argv[1], "fcfs")) {
-            running_process = queue_pop_front(ready_queue);
-            //printf("En el tiempo %d\n", simulation_time);
-            }
-          // RR y priority entran al else
-          else {
-            index = highest_priority_process_index(ready_queue);
-            running_process = get_element(ready_queue, index, ready_queue->item_count);
-          }
-          if (!strcmp(argv[1], "roundrobin")){
-            running_process->actual_q = running_process->quantum;
-          }
-          printf("NOTIFICACIÓN: El proceso %s paso de READY a RUNNING en la iteración %d\n",
-                      running_process->name, simulation_time);
-          running_process->state = RUNNING;
-          running_process->CPU_selected_times++;
-          is_running = READY;
-          // Ver el response_time la primera vez
-          if (!running_process->response_time){
-            running_process->response_time = simulation_time;
-          }
-      }
-      //else {
-      //  running_process = process_array[0];
-      //}
-    }
-
-    simulation_time++;
-  }
-  // Deberiamos llamar al idle, pero por ahora tengo que termine
-  printf("\n\n -----FIN SIMULATION ----- \n\n");
-  printf("SIMULATION TIME: %d\n"
-         "FINISHED PROCESS: %d\n", simulation_time, end_process);
-  queue_destroy(waiting_queue);
-  queue_destroy(ready_queue);
-  free(process_array[0]);  // no tiene seqqueue ni name
-  free(process_array);
-  return 0;
 
 };

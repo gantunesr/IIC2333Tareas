@@ -24,21 +24,26 @@ bool seqqueue_is_full(struct SeqQueue* seqqueue) {
 };
 
 int seqqueue_insert(struct SeqQueue* seqqueue, int data) {
-  seqqueue->array[++(seqqueue->rear)] = data;
+  seqqueue->rear++;
+  printf("%d\n", seqqueue->rear);
+  seqqueue->array[seqqueue->rear] = data;
   seqqueue->item_count++;
   return 0;
 };
 
 SeqQueue* seqqueue_create(int sequence_length, int* sequence, int init_time) {
-  sequence_length = sequence_length*2 - 1;
+  sequence_length = sequence_length*2 - 1; 
   struct SeqQueue* seqqueue = malloc(sizeof(struct SeqQueue));
   seqqueue->MAX = sequence_length + 3;
   seqqueue->front = 0;
   seqqueue->rear = -1;
   seqqueue->item_count = 0;
-  seqqueue->array = malloc((sequence_length+2) * sizeof(int));
+  seqqueue->array = malloc((sequence_length*2) * sizeof(int));
   seqqueue_insert(seqqueue, init_time);
-  for (int i = 0; i < sequence_length; i++) {
+  printf(" ************** %d\n", sequence_length);
+  for (int i = 0; i < sequence_length + 1; i++) {
+
+    printf("===================> %d\n", sequence[i]);
     seqqueue_insert(seqqueue, sequence[i]);
   }
   seqqueue_insert(seqqueue, 0);
@@ -64,9 +69,9 @@ int seqqueue_pop_first(struct SeqQueue* seqqueue) {
 
 void seqqueue_print(struct SeqQueue* seqqueue) {
   if (seqqueue) {
-    printf("Sequence");
-    for (int i = seqqueue->front; i < seqqueue->MAX - 1; i++) {
-      printf(" => %d ", seqqueue->array[i]);
+    printf("Sequence: ");
+    for (int i = seqqueue->front; i < seqqueue->MAX; i++) {
+      printf(" %d -> ", seqqueue->array[i]);
     };
   }
 };
@@ -121,11 +126,11 @@ Process* process_create (int PID, int priority, char *name, char state, int *seq
 };
 
 void process_print (struct Process* process) {
-  printf("-------\n");
-  printf("Proceso: %s\n", process->name);
+  printf("PROCESO: %s\n", process->name);
   if (process->state != -1) {
-    printf(" PID: %d Priority: %d State: %d\n",
-          process->PID, process->priority, process->state);
+    printf(" => PID: %d\n"
+           " => Priority: %d\n"
+           " => State: %d\n", process->PID, process->priority, process->state);
     seqqueue_print(process->sequence);
     printf("\n");
     printf("Current time %d\n", process->current_time);
