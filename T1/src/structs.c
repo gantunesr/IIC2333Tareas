@@ -162,7 +162,6 @@ void process_destroy(struct Process* process) {
   free(process);
 };
 
-
 struct Process* process_idle() {
   Process* idle_process = malloc(sizeof(Process));
   idle_process->name = "IDLE";
@@ -192,12 +191,12 @@ struct Queue {
 typedef struct Queue Queue;
 
 Queue* queue_create(int MAX) {
-  struct Queue* queue = malloc(sizeof(struct Queue));
+  struct Queue* queue = malloc(sizeof(Queue));
   queue->MAX = MAX;
   queue->front = 0;
   queue->rear = -1;
   queue->item_count = 0;
-  queue->array = malloc(MAX * sizeof(struct Process*));
+  queue->array = malloc(MAX * sizeof(Process*));
   return queue;
 };
 
