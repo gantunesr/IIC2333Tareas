@@ -11,6 +11,7 @@ struct SeqQueue {
   int front;
   int rear;
   int item_count;
+  int total_time;
   int* array;
 };
 typedef struct SeqQueue SeqQueue;
@@ -33,6 +34,7 @@ SeqQueue* seqqueue_create(int sequence_length, int* sequence, int init_time) {
   sequence_length = sequence_length*2 - 1;
   struct SeqQueue* seqqueue = malloc(sizeof(struct SeqQueue));
   seqqueue->MAX = sequence_length + 3;
+  seqqueue->total_time = 0;
   seqqueue->front = 0;
   seqqueue->rear = -1;
   seqqueue->item_count = 0;
@@ -40,6 +42,7 @@ SeqQueue* seqqueue_create(int sequence_length, int* sequence, int init_time) {
   seqqueue_insert(seqqueue, init_time);
   for (int i = 0; i < sequence_length; i++) {
     seqqueue_insert(seqqueue, sequence[i]);
+    if (!(i % 2)){seqqueue->total_time += sequence[i];}
   }
   seqqueue_insert(seqqueue, 0);
   // Hay que restar 1 porque al agregar el 0 al final se esta "agrandando" la queue
@@ -83,7 +86,7 @@ struct Process {
   struct SeqQueue *sequence;
   int quantum;
   int actual_q;
-  int current_time; // Tiempo total
+  int run_time;
   int init_time;
   bool in_queue;
   bool initialized;
@@ -103,7 +106,7 @@ Process* process_create (int PID, int priority, char *name, char state, int *seq
   process->priority = priority;
   process->state = state;
   process->quantum = 0;
-  process->current_time = 0;  // Indica el tiempo actual (A o B) para cambiar de estado
+  process->run_time = 0;  // Indica el tiempo actual (A o B) para cambiar de estado
   process->in_queue = 0;
   process->init_time = init_time;
   process->name = malloc(256 * sizeof(char));
@@ -128,9 +131,10 @@ void process_print (struct Process* process) {
           process->PID, process->priority, process->state);
     seqqueue_print(process->sequence);
     printf("\n");
-    printf("Current time %d\n", process->current_time);
+    printf("Total time: %d\n", process->sequence->total_time);
+    printf("Run time: %d\n", process->run_time);
     if (process  -> state == 0) {
-      printf("Le quedan %d intervalos\n", seqqueue_get_first(process->sequence) - process->current_time);
+      printf("Le quedan %d intervalos\n", process->sequence->total_time - process->run_time);
     }
     printf("Numero de veces seleccionado por CPU: %d\n", process->CPU_selected_times);
     printf("Numero de veces bloqueado por CPU: %d\n", process->CPU_blocked_times);
@@ -141,6 +145,13 @@ void process_print (struct Process* process) {
     printf("\n");
   }
 };
+
+void running_process_print(Process* process){
+  printf(" PID: %d \n",
+        process->PID);
+  printf("RUN_TIME: %d\n", process->run_time);
+    printf("Le quedan %d intervalos\n", process->sequence->total_time - process->run_time);
+  }
 
 void process_print_final_info (struct Process* process) {
   if (process -> state != -1) {

@@ -206,12 +206,10 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < waiting_queue->item_count; i++){
       process = waiting_queue->array[i];
       process->waiting_time++;
-      process->turnaround_time = simulation_time - process->response_time;
     }
     // 1. Revisar estado de procesos y cambiarlos
     for (int i = 0; i < waiting_queue->item_count; i++){
       process = waiting_queue->array[i];
-      process->turnaround_time = simulation_time - process->response_time;
       process->waiting_time++;
 
       // Revisar los que entran por primera vez
@@ -225,8 +223,6 @@ int main(int argc, char *argv[]) {
         remove_element(waiting_queue, i, waiting_queue->item_count);
         // Añadirlo al ready_queue
         queue_insert(ready_queue, process);
-        printf("Saca el primer A\n");
-        printf("process->sequence->array[0]: %d\n", process->sequence->array[0]);
         seqqueue_pop_first(process->sequence);
       }
 
@@ -251,6 +247,8 @@ int main(int argc, char *argv[]) {
     // Si hay alguno corriendo
     if (is_running){
       seqqueue_decrease_first(running_process->sequence);
+      running_process->run_time++;
+      running_process_print(running_process);
       // Verificamos si termina su ciclo
       if (seqqueue_get_first(running_process->sequence) == 0){
         is_running = 0;
@@ -260,7 +258,7 @@ int main(int argc, char *argv[]) {
         if (seqqueue_is_empty(running_process->sequence)){
           printf("NOTIFICACIÓN: El proceso %s paso de RUNNING a DEAD en la iteración %d\n",
                   running_process->name, simulation_time);
-          running_process->turnaround_time = simulation_time - process->response_time;
+          running_process->turnaround_time = simulation_time - process->init_time;
           process_print_final_info(running_process);
           process_destroy(running_process);
           end_process++;
@@ -311,7 +309,7 @@ int main(int argc, char *argv[]) {
           is_running = READY;
           // Ver el response_time la primera vez
           if (!running_process->response_time){
-            running_process->response_time = simulation_time;
+            running_process->response_time = simulation_time - running_process->init_time;
           }
       }
       //else {
