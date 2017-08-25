@@ -315,9 +315,9 @@ int main(int argc, char *argv[]) {
             running_process->response_time = simulation_time;
           }
       }
-      else {
-        running_process = process_array[0];
-      }
+      //else {
+      //  running_process = process_array[0];
+      //}
     }
 
     simulation_time++;
