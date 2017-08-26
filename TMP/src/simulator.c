@@ -276,7 +276,6 @@ int main(int argc, char *argv[]) {
       // Ver el siguiente en ser atendido
       if (!queue_is_empty(ready_queue)){
         if (strcmp(argv[1], "fcfs")) {
-          printf("\nitem_count: %d\n",ready_queue->item_count );
           quickSort(ready_queue, 0, ready_queue->item_count-1);
           }
         running_process = queue_pop_front(ready_queue);
