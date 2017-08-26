@@ -16,15 +16,15 @@ struct SeqQueue {
 };
 typedef struct SeqQueue SeqQueue;
 
-bool seqqueue_is_empty(struct SeqQueue* seqqueue) {
+bool seqqueue_is_empty(SeqQueue* seqqueue) {
   return seqqueue->item_count == 0;
 };
 
-bool seqqueue_is_full(struct SeqQueue* seqqueue) {
+bool seqqueue_is_full(SeqQueue* seqqueue) {
    return seqqueue->item_count == seqqueue -> MAX;
 };
 
-int seqqueue_insert(struct SeqQueue* seqqueue, int data) {
+int seqqueue_insert(SeqQueue* seqqueue, int data) {
   seqqueue->array[++(seqqueue->rear)] = data;
   seqqueue->item_count++;
   return 0;
@@ -32,7 +32,7 @@ int seqqueue_insert(struct SeqQueue* seqqueue, int data) {
 
 SeqQueue* seqqueue_create(int sequence_length, int* sequence, int init_time) {
   sequence_length = sequence_length*2 - 1;
-  struct SeqQueue* seqqueue = malloc(sizeof(struct SeqQueue));
+  SeqQueue* seqqueue = malloc(sizeof(SeqQueue));
   seqqueue->MAX = sequence_length + 3;
   seqqueue->total_time = 0;
   seqqueue->front = 0;
@@ -50,22 +50,22 @@ SeqQueue* seqqueue_create(int sequence_length, int* sequence, int init_time) {
   return seqqueue;
 };
 
-void seqqueue_decrease_first(struct SeqQueue* seqqueue){
+void seqqueue_decrease_first(SeqQueue* seqqueue){
   seqqueue->array[seqqueue->front]--;
   return;
 }
 
-int seqqueue_get_first(struct SeqQueue* seqqueue) {
+int seqqueue_get_first(SeqQueue* seqqueue) {
   return seqqueue->array[seqqueue->front];
 }
 
-int seqqueue_pop_first(struct SeqQueue* seqqueue) {
+int seqqueue_pop_first(SeqQueue* seqqueue) {
   int front = seqqueue->array[(seqqueue->front)++];
   seqqueue->item_count--;
   return front;
 }
 
-void seqqueue_print(struct SeqQueue* seqqueue) {
+void seqqueue_print(SeqQueue* seqqueue) {
   if (seqqueue) {
     printf("Sequence");
     for (int i = seqqueue->front; i < seqqueue->MAX - 1; i++) {
@@ -83,7 +83,7 @@ struct Process {
   // 0 RUNNING ; 1 READY ; 2 WAITING ; 3 DEAD
   char state;
   // Parte de la modelacion de los tiempos de ready o waiting para procesos //
-  struct SeqQueue *sequence;
+  SeqQueue *sequence;
   int quantum;
   int actual_q;
   int run_time;
@@ -191,7 +191,7 @@ void process_destroy(Process* process) {
   free(process);
 };
 
-struct Process* process_idle() {
+Process* process_idle() {
   Process* idle_process = malloc(sizeof(Process));
   idle_process->name = "IDLE";
   idle_process->PID = 0;
@@ -205,6 +205,7 @@ struct Process* process_idle() {
   idle_process->CPU_processed = 0;
   idle_process->response_time = 0;
   idle_process->waiting_time = 0;
+  idle_process->run_time = 0;
   return idle_process;
 }
 
@@ -214,12 +215,12 @@ struct Queue {
   int front;
   int rear;
   int item_count;
-  struct Process** array;
+  Process** array;
 };
 typedef struct Queue Queue;
 
 Queue* queue_create(int MAX) {
-  struct Queue* queue = malloc(sizeof(Queue));
+  Queue* queue = malloc(sizeof(Queue));
   queue->MAX = MAX;
   queue->front = 0;
   queue->rear = -1;
@@ -228,20 +229,20 @@ Queue* queue_create(int MAX) {
   return queue;
 };
 
-bool queue_is_empty(struct Queue* queue) {
+bool queue_is_empty(Queue* queue) {
    // return queue->front == queue->MAX;
   return queue->item_count == 0;
 };
 
-bool queue_is_full(struct Queue* queue) {
+bool queue_is_full(Queue* queue) {
    return queue->rear == queue->MAX-1;
 };
 
-void queue_insert(struct Queue* queue, struct Process* process) {
+void queue_insert(Queue* queue, Process* process) {
   int MAX = queue->MAX;
   if (queue_is_full(queue)) {
     ///la idea es duplicar el tamaño y copiar todos sus elementos en ella
-    struct Process** array_ = malloc(MAX * 2 * sizeof(Process*));
+    Process** array_ = malloc(MAX * 2 * sizeof(Process*));
     for (int i = 0; i < queue->MAX; i++) {
       array_[i] =  queue->array[i];
     }
@@ -259,7 +260,7 @@ void queue_insert(struct Queue* queue, struct Process* process) {
   queue->item_count++;
 }
 
-void remove_element(struct Queue* queue, int index, int array_length){
+void remove_element(Queue* queue, int index, int array_length){
   for(int i = index; i < array_length - 1; i++) {
     queue->array[i] = queue->array[i + 1];
   }
@@ -268,7 +269,7 @@ void remove_element(struct Queue* queue, int index, int array_length){
   return;
 }
 
-struct Process* get_element(struct Queue* queue, int index, int array_length){
+Process* get_element(Queue* queue, int index, int array_length){
   Process* process = queue->array[index];
   for(int i = index; i < array_length - 1; i++) {
     queue->array[i] = queue->array[i + 1];
@@ -278,19 +279,19 @@ struct Process* get_element(struct Queue* queue, int index, int array_length){
   return process;
 }
 
-struct Process* queue_pop_front(struct Queue* queue) {
-   struct Process* front_process = queue -> array[(queue -> front)++];
+Process* queue_pop_front(Queue* queue) {
+   Process* front_process = queue -> array[(queue -> front)++];
    queue -> item_count--;
    front_process -> in_queue = 0;
    return front_process;
 }
 
-struct Process* queue_get_front(struct Queue* queue) {
-   struct Process* front_process = queue -> array[(queue -> front)];
+Process* queue_get_front(Queue* queue) {
+   Process* front_process = queue -> array[(queue -> front)];
    return front_process;
 }
 
-void queue_process_print (struct Queue* queue) {
+void queue_process_print (Queue* queue) {
   int index = 0;
   for (int i = queue -> front; i < queue -> rear+1; i++) {
     printf("EN POSICION %d:\n", index);
@@ -300,7 +301,7 @@ void queue_process_print (struct Queue* queue) {
   if (index == 0){printf("LA COLA ESTA VACIA\n\n" );}
 }
 
-void queue_destroy(struct Queue* queue) {
+void queue_destroy(Queue* queue) {
   free(queue -> array);
   free(queue);
 };

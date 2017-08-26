@@ -19,6 +19,8 @@ int partition(Queue* queue, int left, int right, Process* pivot) {
 
    int leftPointer = left;
    int rightPointer = right - 1;
+   int tmp_l = left;
+   int tmp_r = right;
 
    while(true) {
 
@@ -30,9 +32,11 @@ int partition(Queue* queue, int left, int right, Process* pivot) {
          rightPointer--;
       }
 
-      if(leftPointer >= rightPointer) {
-         break;
-      } else {
+      if(leftPointer >= rightPointer) {break;}
+      else if (tmp_l == leftPointer && tmp_r == rightPointer){break;}
+      else {
+         tmp_l = leftPointer;
+         tmp_r = rightPointer;
          swap(queue, leftPointer, rightPointer);
       }
    }

@@ -23,7 +23,7 @@ int simulation_time, end_process;
 
 // --------------------------  PARSER  -----------------------------------
 
-int parse_file (FILE* file, struct Process** process_array, struct Queue* queue) {
+int parse_file (FILE* file, Process** process_array, Queue* queue) {
 
   char process_char[2000];
   char process_name[256];
@@ -34,7 +34,7 @@ int parse_file (FILE* file, struct Process** process_array, struct Queue* queue)
   int last_space = 0;
   int process_char_length = 0 ;
 
-  struct Process* process;
+  Process* process;
   //iteramos sobre las lineas del archivo
   while (fgets(process_char, 500, file)) {
     last_space = 0;
@@ -81,10 +81,10 @@ int parse_file (FILE* file, struct Process** process_array, struct Queue* queue)
   return 0;
 };
 
-// --------------------------  ROUNDROBIN  -----------------------------------
+// --------------------------  ROUNDROBIN  -----------------------------
 
-void roundrobin_quantum(struct Queue* queue, int quantum){
-  struct Process* process;
+void roundrobin_quantum(Queue* queue, int quantum){
+  Process* process;
   for (int i = 0; i < queue->item_count; i++){
     process = queue->array[i];
     int r = round((double)process->priority/quantum);
@@ -97,7 +97,6 @@ void roundrobin_quantum(struct Queue* queue, int quantum){
 
 // --------------------------  PRIORITY  -----------------------------------
 
-// Función que obtener el indice del proceso de mayor prioridad
 int highest_priority_process_index(struct Queue* queue) {
   Process* hprocess = queue->array[0];
   int index = 0;
@@ -110,8 +109,7 @@ int highest_priority_process_index(struct Queue* queue) {
   return index;
 }
 
-// --------------------------  INTHANDLER ---------------------------------
-
+// --------------------------  INTHANDLER ------------------------------
 void INTHandler(int sig){
     signal(sig, SIG_IGN);
     printf("INTERRUPTED\n"
@@ -146,14 +144,13 @@ int main(int argc, char *argv[]) {
   signal(SIGINT, INTHandler);
   // Variable quantum por defecto: 3
   int quantum = 3;
+
+  // VERIFICACION DEL INPUT
   if (argv[3] != NULL) {
     quantum = atoi(argv[3]);
   }
-  printf("%d\n", quantum);
-
   // scheduler = argv[1]; file = argv[2]; quantum = argv[3];
   FILE* file = fopen(argv[2], "r");
-
   if (file == NULL) {
     printf("ERROR: No existe tal archivo\n");
     return 0;
@@ -170,47 +167,43 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  //      DEFINICION DE VARIABLES
 
+  //      DEFINICION DE VARIABLES
   char process_char_counter[2000];
   int process_number = 0;
   simulation_time = 0;
   end_process = 0;
 
   //      CREACIÓN QUEUE Y ARRAY PROCESS
-
   // para ver cuantas lineas o procesos tiene el archivo
   FILE* file_ = fopen(argv[2], "r");
   while (fgets(process_char_counter, 500, file_)) {process_number++;}
   fclose(file_);
-
   // Creacion del arreglo de procesos
   process_number++; // por proceso idle
   Process** process_array = malloc(process_number * sizeof(Process*));
-
   // Creacion de queues
   waiting_queue = queue_create(process_number);
   ready_queue = queue_create(process_number);
   end_queue = queue_create(process_number);
-
   //creacion del proceso idle
   process_array[0] = process_idle();
-
   parse_file(file, process_array, waiting_queue);
   queue_process_print(waiting_queue);
   if (!strcmp(argv[1], "roundrobin")){
     roundrobin_quantum(waiting_queue, quantum);
   }
 
-  printf("\n\n ----- SIMULATION ----- \n\n");
 
+  printf("\n\n ----- SIMULATION ----- \n\n");
   Process* process;
   Process* running_process;
   bool is_running = 0;
-
-  while (!queue_is_empty(waiting_queue) || !queue_is_empty(ready_queue) || is_running){
+  int index = 0;
+  while (!queue_is_empty(waiting_queue) || \
+  !queue_is_empty(ready_queue) || is_running){
     // Primero sumamos waiting time a los que estan ready
-    for (int i = 0; i < waiting_queue->item_count; i++){
+    for (int i = 0; i < ready_queue->item_count; i++){
       process = waiting_queue->array[i];
       process->waiting_time++;
     }
@@ -225,7 +218,7 @@ int main(int argc, char *argv[]) {
         // Cambiar de waiting a ready
         printf("NOTIFICACIÓN: El proceso %s paso de WAITING a READY en la iteración %d\n",
                 process->name, simulation_time);
-        process->state = 1;
+        process->state = READY;
         // Removerlo de waiting_queue
         remove_element(waiting_queue, i, waiting_queue->item_count);
         // Añadirlo al ready_queue
@@ -237,16 +230,16 @@ int main(int argc, char *argv[]) {
       else if (process->init_time <= simulation_time){
         seqqueue_decrease_first(process->sequence);
         if (seqqueue_get_first(process->sequence) == 0){
-            // Cambiar de waiting a ready
-            printf("NOTIFICACIÓN: El proceso %s paso de WAITING a READY en la iteración %d\n",
-                    process->name, simulation_time);
-            process->state = 1;
-            // Removerlo de waiting_queue
-            remove_element(waiting_queue, i, waiting_queue->item_count);
-            // Añadirlo al ready_queue
-            queue_insert(ready_queue, process);
-            // Sacamos el numero de la secuencia
-            seqqueue_pop_first(process->sequence);
+          // Cambiar de waiting a read
+          printf("NOTIFICACIÓN: El proceso %s paso de WAITING a READY en la iteración %d\n",
+                  process->name, simulation_time);
+          process->state = READY;
+          // Removerlo de waiting_queue
+          remove_element(waiting_queue, i, waiting_queue->item_count);
+          // Añadirlo al ready_queue
+          queue_insert(ready_queue, process);
+          // Sacamos el numero de la secuencia
+          seqqueue_pop_first(process->sequence);
         }
       }
     }
@@ -285,57 +278,60 @@ int main(int argc, char *argv[]) {
           printf("NOTIFICACIÓN: El proceso %s paso de RUNNING a READY en la iteración %d\n",
                 running_process->name, simulation_time);
           running_process->state = READY;
-          running_process->CPU_blocked_times++;  //No estoy seguro si es este
+          running_process->CPU_blocked_times++;
           // Lo agregamos a waiting_queue
           queue_insert(ready_queue, running_process);
           is_running = 0;
-          if (!queue_is_empty(ready_queue)) {
-            process_array[0]->CPU_selected_times++;
-          }
         }
       }
     }
 
     // Aca entra el scheduler
     else {
-        // Ver el siguiente en ser atendido
-        if (!queue_is_empty(ready_queue)){
-          if (!strcmp(argv[1], "fcfs")) {
-            running_process = queue_pop_front(ready_queue);
-            //printf("En el tiempo %d\n", simulation_time);
-            }
-          // RR y priority entran al else
-          else {
-            if (ready_queue->item_count > 1) {
-              quickSort(ready_queue, 0, ready_queue->item_count-1);
-            }
-            running_process = queue_pop_front(ready_queue);
+      // Ver el siguiente en ser atendido
+      if (!queue_is_empty(ready_queue)){
+        if (!strcmp(argv[1], "fcfs")) {
+          running_process = queue_pop_front(ready_queue);
+          //printf("En el tiempo %d\n", simulation_time);
           }
-          if (!strcmp(argv[1], "roundrobin")){
-            running_process->actual_q = running_process->quantum;
-          }
-          printf("NOTIFICACIÓN: El proceso %s paso de READY a RUNNING en la iteración %d\n",
-                      running_process->name, simulation_time);
-          running_process->state = RUNNING;
-          running_process->CPU_selected_times++;
-          is_running = READY;
-          // Ver el response_time la primera vez
-          if (!running_process->response_time){
-            running_process->response_time = simulation_time - running_process->init_time;
-          }
-      }
-      else {
-        process_array[0]->CPU_selected_times++;
+        // RR y priority entran al else
+        else {
+          index = highest_priority_process_index(ready_queue);
+          running_process = get_element(ready_queue, index, ready_queue->item_count);
+        }
+        if (!strcmp(argv[1], "roundrobin")){
+          running_process->actual_q = running_process->quantum;
+        }
+        if (process_array[0]->state == 0){
+          process_array[0]->state = READY;
+          process_array[0]->CPU_blocked_times++;
+          printf("NOTIFICACIÓN: El proceso %s paso de RUNNING a READY en la iteración %d\n",
+                      process_array[0]->name, simulation_time);
+        }
+        printf("NOTIFICACIÓN: El proceso %s paso de READY a RUNNING en la iteración %d\n",
+                    running_process->name, simulation_time);
+        running_process->state = RUNNING;
+        running_process->CPU_selected_times++;
+        is_running = 1;
+        // Ver el response_time la primera vez
+        if (!running_process->response_time){
+          running_process->response_time = simulation_time - running_process->init_time;
+        }
       }
     }
 
     if (!is_running && queue_is_empty(ready_queue)) {
       process_array[0]->run_time++;
-    }
+      if (process_array[0]->state == 1){
+        process_array[0]->CPU_selected_times++;
+        printf("NOTIFICACIÓN: El proceso %s paso de READY a RUNNING en la iteración %d\n",
+                    process_array[0]->name, simulation_time);
+        process_array[0]->state = RUNNING;
+      }
+    } else {process_array[0]->waiting_time++;}
 
     simulation_time++;
   }
-  // Deberiamos llamar al idle, pero por ahora tengo que termine
   printf("\n\n -----FIN SIMULATION ----- \n\n");
   printf("SIMULATION TIME: %d\n"
          "FINISHED PROCESS: %d\n\n", simulation_time, end_process);
@@ -347,7 +343,7 @@ int main(int argc, char *argv[]) {
   queue_destroy(end_queue);
   queue_destroy(waiting_queue);
   queue_destroy(ready_queue);
-  free(process_array[0]);  // no tiene seqqueue ni name
+  free(process_array[0]);
   free(process_array);
   return 0;
 

@@ -11,3 +11,4 @@ El algoritmo utiliza las siguientes estructuras:
 ## Observaciones
 
 * Si el Q_k de un proceso que con valor 0 o negativo, este pasará a tomar el valor de 1. Dado que si no el proceso no terminaria nunca de ejecutarse.
+* Si un proceso es interrumpido (Ctrl+C), no se calcula su *turnaround_time* dado que este nunca finaliza. Por defecto su valor será 0.
