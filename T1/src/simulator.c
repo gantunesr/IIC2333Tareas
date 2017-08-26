@@ -318,6 +318,9 @@ int main(int argc, char *argv[]) {
           running_process->response_time = simulation_time - running_process->init_time;
         }
       }
+      else {
+        process_array[0]->CPU_selected_times++;
+      }
     }
 
     if (!is_running && queue_is_empty(ready_queue)) {
