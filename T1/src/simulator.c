@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <math.h>
-#include "quicksort.c"
+#include "structs.c"
 
 
 #define RUNNING 0;
@@ -317,9 +317,6 @@ int main(int argc, char *argv[]) {
         if (!running_process->response_time){
           running_process->response_time = simulation_time - running_process->init_time;
         }
-      }
-      else {
-        process_array[0]->CPU_selected_times++;
       }
     }
 
