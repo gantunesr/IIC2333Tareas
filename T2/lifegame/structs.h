@@ -17,7 +17,7 @@ Matrix* init_matrix(int n_row, int n_col);
  * @return En este caso nada
 */
 
-void* poblate_matrix(Matrix* matrix, int starter);
+void* poblate_matrix(Matrix* matrix, int *starter, int size);
 
 void check_neighbours(int row, int col, Matrix* matrix, Matrix* future_m);
 

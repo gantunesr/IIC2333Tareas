@@ -10,15 +10,16 @@ Matrix* init_matrix(int n_row, int n_col){
     matrix->cells = malloc(sizeof(bool*) * n_row);
     for (int i = 0;i < n_row; i++){
         matrix->cells[i] = malloc(n_col * sizeof(bool));
+        for (int j = 0;j < n_col; j++){
+          matrix->cells[i][j] = 0;
+        }
     }
     return matrix;
 }
 
-void* poblate_matrix(Matrix* matrix, int starter){
-	for (int i = 0; i < matrix->rows; i++){
-		for (int j = 0; j < matrix->cols; j++){
-			// crear la matriz
-			}
+void* poblate_matrix(Matrix* matrix, int *starter, int size){
+	for (int i = 0; i < size; i++){
+		matrix->cells[starter[2 * i]][starter[2 * i + 1]] = 1;
 		}
 	return matrix;
 }
