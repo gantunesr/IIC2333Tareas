@@ -24,3 +24,7 @@ void check_neighbours(int row, int col, Matrix* matrix, Matrix* future_m);
 void print_matrix(Matrix* matrix);
 
 void destroy_matrix(Matrix* matrix);
+
+
+// Lifegame
+void lifegame(Matrix* matrix, Matrix* future_matrix);
