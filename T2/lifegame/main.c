@@ -9,11 +9,13 @@
 
 
 void INThandler(int);
-void *lifegame(void* tStruct);
+void *lifegame_part1(void* tStruct);
+void *lifegame_part2(void* tStruct);
+
+
 Matrix *matrix, *future_matrix;
 int *total_iter, counter, cores, threads;
 Matrix** actual_state;
-pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 int** thread_rows;
 int** thread_cols;
 
@@ -96,7 +98,6 @@ int main(int argc, char** argv){
 		thread_rows[t] = array;
 		thread_cols[t] = array2;
 	}
-
   // CREATE WORKERS
   for(int workers = 0; workers < cores; workers++){
     if (pid != 0){
@@ -110,12 +111,21 @@ int main(int argc, char** argv){
 		while(cicle != iterations){
 			pthread_t tid[threads];
 			for(int t = 0; t < threads; t++){
-					ThreadBase* threadb = init_thread(thread_rows[t], thread_cols[t]);
-					pthread_create(&tid[t], NULL, &lifegame, (void*)threadb);
+					ThreadBase* threadb = init_thread(thread_rows[t], thread_cols[t], t);
+					pthread_create(&tid[t], NULL, &lifegame_part1, (void*)threadb);
 			}
 			for(int t = 0; t < threads; t++){
 					pthread_join(tid[t], NULL);
 			}
+
+			for(int t = 0; t < threads; t++){
+					ThreadBase* threadb = init_thread(thread_rows[t], thread_cols[t], t);
+					pthread_create(&tid[t], NULL, &lifegame_part2, (void*)threadb);
+			}
+			for(int t = 0; t < threads; t++){
+					pthread_join(tid[t], NULL);
+			}
+
 			cicle++;
 			total_iter[counter] = cicle;
 			actual_state[counter] = matrix;
@@ -168,20 +178,23 @@ void  INThandler(int sig){
 }
 
 
-void *lifegame(void* tStruct){
+void *lifegame_part1(void* tStruct){
 	ThreadBase* threadb = (ThreadBase*)tStruct;
 	int size = threadb->rows[0];
 	for (int i = 1; i < size; i++){
 			check_neighbours(threadb->rows[i], threadb->cols[i], matrix, future_matrix);
 	}
+	destroy_threadbase(threadb);
+	return 0;
+}
 
-	// Tener la segunda matriz es para que no afecten los cambios
-	pthread_mutex_lock(&mutex1);
+void *lifegame_part2(void* tStruct){
+	ThreadBase* threadb = (ThreadBase*)tStruct;
+	int size = threadb->rows[0];
 	for (int i = 1; i < size; i	++){
 			matrix->cells[threadb->rows[i]][threadb->cols[i]] = \
 			future_matrix->cells[threadb->rows[i]][threadb->cols[i]];
 	}
-	pthread_mutex_unlock(&mutex1);
 	destroy_threadbase(threadb);
 	return 0;
 }

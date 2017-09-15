@@ -27,11 +27,12 @@ void destroy_matrix(Matrix* matrix);
 
 
 struct ThreadBase{
+    int index;
     int* rows;
     int* cols;
 };
 typedef struct ThreadBase ThreadBase;
 
-ThreadBase* init_thread(int* rows, int* cols);
+ThreadBase* init_thread(int* rows, int* cols, int index);
 
 void destroy_threadbase(ThreadBase* thread);
