@@ -6,20 +6,14 @@
 #include <signal.h>
 
 
-
-/////////////////////////////////////
-/// builtins ///
 int num_builtins();
 int msh_exit(char **args);
+int msh_set_path(char **args);
 int msh_set_prompt(char **args);
 
-char *builtin_str[] = {"setPrompt", "exit"};
-int (*builtin_func[]) (char **) = { &msh_set_prompt,&msh_exit};
-
-
-/////////////////////////////////////
-////   Funciones   ////
-
+char PROMPT[] = "Ingresa un comando:";
+char *builtin_str[] = {"setPrompt", "setPath", "exit"};
+int (*builtin_func[]) (char **) = { &msh_set_prompt, &msh_set_path, &msh_exit};
 
 char* read_line(void) {
   char *line = NULL;
@@ -44,41 +38,34 @@ char **split_line(char *line, int *command_tokens){
     token = strtok(NULL, " \n");
   }
   tokens[*command_tokens] = NULL;
-  //for (int i = 0; i < position; i++) {printf("%s\n", tokens[i]);};
   return tokens;
 }
 
 int ctrlc = 0;
 void intHandler(int dummy) {
-  //printf("Found your CTRL-C\n");
   ctrlc =1;
-    //exit(1);
 }
 
 void intHandlerFather(int dummy) {
-  //printf("Found your -C\n");
   printf("\n" );
   exit(0);
 }
 
 int status_child;
-int process(char **args, int *command_tokens)
-{
+int process(char **args, int *command_tokens) {
   pid_t  wpid;
   pid_t pid;
   int in_background = strcmp(args[*command_tokens-1],"&");
-  //se crea el hijo siempre independiente de &
   pid = fork();
   signal(SIGINT, intHandler);
   if (pid == 0) {
-    //en hijo
     if (in_background == 0) {args[*command_tokens - 1] = NULL;}
     if (execvp(args[0], args) == -1) {
       perror("Error");
       exit(0);
     }
   } else {
-    //en padre
+    //en
     do {
       if (in_background != 0) {
         wpid = waitpid(pid, &status_child, WUNTRACED);
@@ -91,8 +78,7 @@ int process(char **args, int *command_tokens)
   return 1;
 }
 
-int execute(char **args, int *command_tokens)
-{
+int execute(char **args, int *command_tokens) {
   //si no se ingresa nada
   if (args[0] == NULL) {
     return 1;
@@ -106,16 +92,11 @@ int execute(char **args, int *command_tokens)
   return process(args, command_tokens);
   }
 
-
-
-char PROMPT[] = "Ingresa un comando:";
-
 int num_builtins() {return sizeof(builtin_str) / sizeof(char *);}
 
 int msh_set_prompt(char **args) {
   printf("%s\n", args[1]);
   strcpy(PROMPT, args[1]);
-  //printf("%lu\n", strlen(args));
   int i = 2;
   while (args[i] != NULL) {
     strcat(PROMPT, " ");
@@ -126,19 +107,17 @@ int msh_set_prompt(char **args) {
   return 0;
 }
 
+int msh_set_path(char **args) {
+  strcpy(PROMPT, args[1]);
+  printf("%s\n", args[1]);
+  return 0;
+}
+
 int msh_exit(char **args) { return 0;}
 
 
-/*
-//TO DO
-
-intHandler
-setPrompt -> Listo
-programas del tipo /usr/bin/ ---> dejar en README
-*/
-
-int main()
-{
+int main() {
+  int last_arg, N;
   char *line;
   char **args;
   int status = 1;
@@ -152,9 +131,23 @@ int main()
     //obtener palabras
     int command_tokens = 0;
     args = split_line(line, &command_tokens);
+    last_arg = (sizeof(args)/sizeof(args[0])) + 1;
+
     if (ctrlc == 1) {return 0;};
     //ejecutar comando
-    status = execute(args, &command_tokens);
+
+    if (strcmp(args[last_arg], "&")) {
+
+    }
+    else if (strcmp(&args[last_arg][1], "&")) {
+      N = atoi(&args[last_arg][0]);
+      for (int k = 0; k < N; k++) {
+        status = execute(args, &command_tokens);
+      }
+    }
+    else {
+      status = execute(args, &command_tokens);
+    }
     free(line);
     free(args);
   };
