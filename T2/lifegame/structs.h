@@ -26,5 +26,12 @@ void print_matrix(Matrix* matrix);
 void destroy_matrix(Matrix* matrix);
 
 
-// Lifegame
-void lifegame(Matrix* matrix, Matrix* future_matrix);
+struct ThreadBase{
+    int* rows;
+    int* cols;
+};
+typedef struct ThreadBase ThreadBase;
+
+ThreadBase* init_thread(int* rows, int* cols);
+
+void destroy_threadbase(ThreadBase* thread);

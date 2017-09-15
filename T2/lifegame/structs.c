@@ -91,19 +91,15 @@ void destroy_matrix(Matrix* matrix){
 }
 
 
-// Lifegame
-void lifegame(Matrix* matrix, Matrix* future_matrix){
-	for (int i = 0; i < matrix->rows; i++){
-		for (int j = 0; j < matrix->cols; j++){
-			check_neighbours(i, j, matrix, future_matrix);
-		}
-	}
+// ThreadBase
+ThreadBase* init_thread(int* rows, int* cols){
+  ThreadBase* threadb = malloc(sizeof(ThreadBase));
+  threadb->rows = rows;
+  threadb->cols = cols;
 
-	// Tener la segunda matriz es para que no afecten los cambios
-	for (int i = 0; i < matrix->rows; i++){
-		for (int j = 0; j < matrix->cols; j++){
-			matrix->cells[i][j] = future_matrix->cells[i][j];
-		}
-	}
-	return;
+  return threadb;
+}
+
+void destroy_threadbase(ThreadBase* thread){
+  free(thread);
 }
