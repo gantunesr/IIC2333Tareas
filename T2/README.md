@@ -1,7 +1,13 @@
 # Tarea 2
 
-* Gustavo Antunes | 1363514J
-* Cristián Cortés | 14634627
+<center>
+
+| Nombre          | Número de Alumno |
+|-----------------|------------------|
+| Gustavo Antunes | 1363514J         |
+| Cristián Cortés | 14634627         |
+
+</center>
 
 ## Lifegame
 
