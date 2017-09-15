@@ -1,7 +1,7 @@
 #Tarea 2
 
-*Gustavo Antunes | 1363514J
-*Cristián Cortés | 14634627
+* Gustavo Antunes | 1363514J
+* Cristián Cortés | 14634627
 
 ##Lifegame
 
