@@ -92,11 +92,10 @@ void destroy_matrix(Matrix* matrix){
 
 
 // ThreadBase
-ThreadBase* init_thread(int* rows, int* cols, int index){
+ThreadBase* init_thread(int* rows, int* cols){
   ThreadBase* threadb = malloc(sizeof(ThreadBase));
   threadb->rows = rows;
   threadb->cols = cols;
-  threadb->index = index;
   return threadb;
 }
 

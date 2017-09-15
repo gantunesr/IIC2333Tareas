@@ -111,7 +111,7 @@ int main(int argc, char** argv){
 		while(cicle != iterations){
 			pthread_t tid[threads];
 			for(int t = 0; t < threads; t++){
-					ThreadBase* threadb = init_thread(thread_rows[t], thread_cols[t], t);
+					ThreadBase* threadb = init_thread(thread_rows[t], thread_cols[t]);
 					pthread_create(&tid[t], NULL, &lifegame_part1, (void*)threadb);
 			}
 			for(int t = 0; t < threads; t++){
@@ -119,7 +119,7 @@ int main(int argc, char** argv){
 			}
 
 			for(int t = 0; t < threads; t++){
-					ThreadBase* threadb = init_thread(thread_rows[t], thread_cols[t], t);
+					ThreadBase* threadb = init_thread(thread_rows[t], thread_cols[t]);
 					pthread_create(&tid[t], NULL, &lifegame_part2, (void*)threadb);
 			}
 			for(int t = 0; t < threads; t++){
