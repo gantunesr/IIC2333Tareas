@@ -72,14 +72,11 @@ int process(char **args, int *command_tokens) {
       exit(0);
     }
   } else {
-    //en
     do {
       if (in_background != 0) {
         wpid = waitpid(pid, &status_child, WUNTRACED);
       }
     } while (!WIFEXITED(status_child)  && in_background != 0 && !ctrlc);
-    //WIFSIGNALED  1 si child termino con por signal
-    //WIFEXITED  1 si child termino normalmente con exit por ejemplo
   }
 
   return 1;
@@ -123,8 +120,7 @@ int mshell_set_path(char **args) {
 }
 
 char* concat(const char *s1, const char *s2) {
-    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
-    //in real code you would check for errors in malloc here
+    char *result = malloc(strlen(s1)+strlen(s2)+1);
     strcpy(result, s1);
     strcat(result, s2);
     return result;

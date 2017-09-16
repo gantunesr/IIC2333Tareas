@@ -23,14 +23,14 @@ Para manejar la sincronización de los _threads_ dentro del programa se utilizó
 
 ### Algoritmo
 
-SUPOSICIÓN: El algoritmo funciona con la suposición que los comandos serán escritos de manera correcta, en caso contrario este terminará su ejecución.
+* **Suposición 1**: El algoritmo funciona con la suposición que los comandos serán escritos de manera correcta, en caso contrario este terminará su ejecución.
 
-#### Procesamiento
+#### I - Procesamiento
 
-El algoritmo posee las funciones (buildins) en un arreglo. Cuando se ejecuta un comando,
-se busca los argumentos ingresados (entre ellos un buildin), se realiza una comparción de strings y se ejecuta el comando ingresado.
+El algoritmo posee las funciones (buildins) en un arreglo. Cuando se ingresa un comando,
+se busca entre los argumentos un buildin. Si lo encuentre, se realiza una comparación de strings y se ejecuta el comando ingresado junto con los demás argumentos, los cuales son parseados y almacenados en otro arrelo. En caso contrario, se pide un nuevo comando.
 
-##### Proceso
+#### II - Proceso
 
 Para la creación de los procesos, se usa las funciones _fork()_, _execvp()_, _perror()_, _exit()_ y _waitpid()_. Además, se utiliza las funciones _WIFSIGNALED()_ y _WIFEXITED()_ de la siguiente manenra:
 
