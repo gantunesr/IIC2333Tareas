@@ -1,13 +1,9 @@
 # Tarea 2
 
-<center>
-
 | Nombre          | Número de Alumno |
 |-----------------|------------------|
 | Gustavo Antunes | 1363514J         |
 | Cristián Cortés | 14634627         |
-
-</center>
 
 ## Lifegame
 
@@ -26,3 +22,5 @@ Para manejar la sincronización de los _threads_ dentro del programa se utilizó
 ## MyShell
 
 ### Algoritmo
+
+El algoritmo funciona con la suposición que los comandos serán escritos de manera correcta, en caso contrario este terminará su ejecución.

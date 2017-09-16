@@ -7,13 +7,19 @@
 
 
 int num_builtins();
-int msh_exit(char **args);
-int msh_set_path(char **args);
-int msh_set_prompt(char **args);
 
-char PROMPT[] = "Ingresa un comando:";
+int mshell_exit(char **args);
+int mshell_set_path(char **args);
+int mshell_set_prompt(char **args);
+
+char* concat(const char *s1, const char *s2);
+
 char *builtin_str[] = {"setPrompt", "setPath", "exit"};
-int (*builtin_func[]) (char **) = { &msh_set_prompt, &msh_set_path, &msh_exit};
+int (*builtin_func[]) (char **) = { &mshell_set_prompt, &mshell_set_path, &mshell_exit};
+
+char PROMPT[] = " >>> Ingresa un comando:";
+char path[] = "";
+int abs_path = 0;
 
 char* read_line(void) {
   char *line = NULL;
@@ -83,6 +89,9 @@ int execute(char **args, int *command_tokens) {
   if (args[0] == NULL) {
     return 1;
   }
+  if (abs_path) {
+    args[1] = concat(path, args[0]);
+  }
   //ver si ingresa alguno de los built ins
   for (int i = 0; i < num_builtins(); i++) {
     if (strcmp(args[0], builtin_str[i]) == 0) {
@@ -94,7 +103,7 @@ int execute(char **args, int *command_tokens) {
 
 int num_builtins() {return sizeof(builtin_str) / sizeof(char *);}
 
-int msh_set_prompt(char **args) {
+int mshell_set_prompt(char **args) {
   printf("%s\n", args[1]);
   strcpy(PROMPT, args[1]);
   int i = 2;
@@ -107,17 +116,26 @@ int msh_set_prompt(char **args) {
   return 0;
 }
 
-int msh_set_path(char **args) {
-  strcpy(PROMPT, args[1]);
-  printf("%s\n", args[1]);
-  return 0;
+int mshell_set_path(char **args) {
+  strcpy(path, args[1]);
+  printf("\n Nuevo ruta absoluta: %s\n\n", path);
+  abs_path = 1;
+  return 1;
 }
 
-int msh_exit(char **args) { return 0;}
+char* concat(const char *s1, const char *s2) {
+    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
+    //in real code you would check for errors in malloc here
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
+
+int mshell_exit(char **args) { return 0;}
 
 
 int main() {
-  int last_arg, N;
+  int last_arg;
   char *line;
   char **args;
   int status = 1;
@@ -130,24 +148,12 @@ int main() {
     line = read_line();
     //obtener palabras
     int command_tokens = 0;
-    args = split_line(line, &command_tokens);
     last_arg = (sizeof(args)/sizeof(args[0])) + 1;
+    args = split_line(line, &command_tokens);
 
-    if (ctrlc == 1) {return 0;};
+    if (ctrlc) return 0;
     //ejecutar comando
-
-    if (strcmp(args[last_arg], "&")) {
-
-    }
-    else if (strcmp(&args[last_arg][1], "&")) {
-      N = atoi(&args[last_arg][0]);
-      for (int k = 0; k < N; k++) {
-        status = execute(args, &command_tokens);
-      }
-    }
-    else {
-      status = execute(args, &command_tokens);
-    }
+    status = execute(args, &command_tokens);
     free(line);
     free(args);
   };
