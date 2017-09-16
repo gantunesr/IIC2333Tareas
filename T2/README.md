@@ -36,3 +36,7 @@ Para la creación de los procesos, se usa las funciones _fork()_, _execvp()_, _p
 
 * _WIFSIGNALED()_ = 1, si child termino por signal.
 * _WIFEXITED()_ =  1, si child termino normalmente (con _exit()_, por ejemplo).
+
+### Observaciones
+
+* No se pude completar el último punto del enunciado ("Si el último argumento es &N, el proceso debe ser ejecutado N veces en paralelo (esto significa que pueden estar en estado ready simultánamente).")
