@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "structs.h"
 
-
+// Queue Methods
 Queue* init_queue(int max){
   Queue* queue = malloc(sizeof(Queue));
   queue->size = 0;
