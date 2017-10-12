@@ -1,5 +1,5 @@
 # the compiler: gcc for C program, define as g++ for C++
-# Makefile for Lifegame
+# Makefile for disk_scheduler
 CC = gcc
 
 # compiler flags:
@@ -8,13 +8,11 @@ CC = gcc
 CFLAGS  = -Wall -g
 
 # the build target executable:
-TARGET = ./src/main
+TARGET = ./src/
 EXECNAME = disk_scheduler
 
-all: $(TARGET)
-
-$(TARGET): $(TARGET).c
-	$(CC) $(CFLAGS) $(VM) -o $(EXECNAME) $(TARGET).c
+all:
+	$(CC) $(CFLAGS) $(VM)-o $(EXECNAME) $(TARGET)main.c $(TARGET)structs.c
 
 clean:
 	$(RM) $(TARGET)
