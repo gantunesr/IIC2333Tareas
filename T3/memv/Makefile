@@ -8,13 +8,11 @@ CC = gcc
 CFLAGS  = -Wall -g
 
 # the build target executable:
-TARGET = ./src/main
+TARGET = ./src/
 EXECNAME = mem_simulator
 
 all: $(TARGET)
-
-$(TARGET): $(TARGET).c
-	$(CC) $(CFLAGS) $(VM) -o $(EXECNAME) $(TARGET).c
+	$(CC) $(CFLAGS) $(VM) -o $(EXECNAME) $(TARGET)main.c $(TARGET)structs.c -lm
 
 clean:
 	$(RM) $(TARGET)

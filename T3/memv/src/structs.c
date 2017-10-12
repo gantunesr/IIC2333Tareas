@@ -1,25 +1,10 @@
-#include <unistd.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
 #include <math.h>
-
-typedef struct MMU MMU;
-typedef struct page page;
-typedef struct Address Address;
+#include "structs.h"
 
 
-/* MMU */
-
-/* MMU para manejar hits y page faults */
-struct MMU {
-  int tlb_hit;
-  int tlb_miss;
-  int page_fault;
-  int page_total;
-};
-
+/* MMU
+   MMU para manejar hits y page faults */
 MMU* create_mmu() {
   MMU* mmu = malloc(sizeof(MMU));
   mmu->tlb_miss = 0;
@@ -33,17 +18,8 @@ void free_mmu(MMU* mmu) {
 }
 
 /* Memoria virtual */
-
-struct page {
-  int number;
-  bool active;
-  int framenumber;
-  int order;
-};
-
 page* create_page() {
   page* page = malloc(sizeof(page));
-
   return page;
 }
 
@@ -51,13 +27,7 @@ void free_page(page* page) {
   free(page);
 }
 
-/* */
-
-struct Address {
-  int number;
-  int offset;
-};
-
+/* Address*/
 Address* create_address(int number, int offset) {
     Address* address = malloc(sizeof(struct Address));
     address->number = number;
@@ -66,7 +36,6 @@ Address* create_address(int number, int offset) {
 }
 
 /* Funciones útiles */
-
 // Función para convertir un binario a decimal
 int bin_to_dec(long long bin) {
   int decimal = 0;
@@ -105,7 +74,7 @@ Address* get_address(int decimal) {
   int remain;
 
   while (decimal != 0) {
-    remain = decimal%2;
+    remain = decimal % 2;
     decimal /= 2;
     bin += remain*i;
     i *= 10;
