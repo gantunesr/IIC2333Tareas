@@ -97,6 +97,7 @@ void sstf(Disk* disk, Queue* queue){
 void fun_scan(Disk* disk, Queue* queue){
   qsort(queue->array, disk->size - 1, sizeof(int), compare);
   int index = get_index(queue, disk->head);
+  if(!(disk->size - 1 - index)){index++;}
   for(int i = index; i < disk->size; i++){
     compare_cilinders(disk, queue->array[i]);
   }
@@ -110,6 +111,7 @@ void fun_scan(Disk* disk, Queue* queue){
 void clook(Disk* disk, Queue* queue){
   qsort(queue->array, disk->size - 1, sizeof(int), compare);
   int index = get_index(queue, disk->head);
+  if(!(disk->size - 1 - index)){index++;}
   for(int i = index; i < disk->size; i++){
     compare_cilinders(disk, queue->array[i]);
   }
