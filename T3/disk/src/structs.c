@@ -100,6 +100,8 @@ void fun_scan(Disk* disk, Queue* queue){
   for(int i = index; i < disk->size; i++){
     compare_cilinders(disk, queue->array[i]);
   }
+  disk->seek_time += (255 - disk->head);
+  disk->head = 255;
   for(int i = index - 1; i >= 0; i--){
     compare_cilinders(disk, queue->array[i]);
   }
