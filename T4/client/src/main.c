@@ -1,75 +1,59 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <netdb.h>
-#include <netinet/in.h>
+#include<stdio.h>
+#include<string.h>
+#include<sys/socket.h>
+#include<arpa/inet.h>
+#include<time.h>
 
-#include <string.h>
 
-int main(int argc, char *argv[]) {
-   int sockfd, portno, n;
-   struct sockaddr_in serv_addr;
-   struct hostent *server;
+void answer_heartbeat(int sock, char message, time_t now);
 
-   char buffer[256];
 
-   if (argc < 3) {
-      fprintf(stderr,"usage %s hostname port\n", argv[0]);
-      exit(0);
-   }
+int main(int argc , char *argv[]){
+    int sock;
+    struct sockaddr_in server;
+    char server_reply[2000];
+    //time_t now = time(0);
+    //Create socket
+    sock = socket(AF_INET , SOCK_STREAM , 0);
+    if (sock == -1){
+        printf("Could not create socket");
+    }
 
-   portno = atoi(argv[2]);
+    server.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server.sin_family = AF_INET;
+    server.sin_port = htons(5000);
 
-   /* Create a socket point */
-   sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    //Connect to remote server
+    if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0){
+        perror("connect failed. Error");
+        return 1;
+    }
 
-   if (sockfd < 0) {
-      perror("ERROR opening socket");
-      exit(1);
-   }
+    //keep communicating with server
+    while(1){
+        char message[1024] = {0};
+        printf("Enter message: ");
+        scanf("%s" , message);
 
-   server = gethostbyname(argv[1]);
+        //Send some data
+        if(send(sock , message , strlen(message) , 0) < 0){
+            return 1;
+        }
 
-   if (server == NULL) {
-      fprintf(stderr,"ERROR, no such host\n");
-      exit(0);
-   }
+        //Receive a reply from the server
+        if(recv(sock , server_reply , 1024 , 0) < 0){
+            puts("recv failed");
+            break;
+        }
 
-   bzero((char *) &serv_addr, sizeof(serv_addr));
-   serv_addr.sin_family = AF_INET;
-   bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-   serv_addr.sin_port = htons(portno);
+        printf("Server reply: %s\n", server_reply);
+    }
 
-   /* Now connect to the server */
-   if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-      perror("ERROR connecting");
-      exit(1);
-   }
+    close(sock);
+    return 0;
+}
 
-   /* Now ask for a message from the user, this message
-      * will be read by server
-   */
-
-   printf("Please enter the message: ");
-   bzero(buffer,256);
-   fgets(buffer,255,stdin);
-
-   /* Send message to the server */
-   n = write(sockfd, buffer, strlen(buffer));
-
-   if (n < 0) {
-      perror("ERROR writing to socket");
-      exit(1);
-   }
-
-   /* Now read server response */
-   bzero(buffer,256);
-   n = read(sockfd, buffer, 255);
-
-   if (n < 0) {
-      perror("ERROR reading from socket");
-      exit(1);
-   }
-
-   printf("%s\n",buffer);
-   return 0;
+void answer_heartbeat(int sock, char message, time_t now){
+  time(&now);
+  // responder message + now
 }

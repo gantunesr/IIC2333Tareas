@@ -1,72 +1,98 @@
 #include <stdio.h>
-#include <stdlib.h>
-
-#include <netdb.h>
-#include <netinet/in.h>
-
 #include <string.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <stdbool.h>
+#include <pthread.h>
+#include "queue.h"
 
-int main( int argc, char *argv[] ) {
-   int sockfd, newsockfd, portno, clilen;
-   char buffer[256];
-   struct sockaddr_in serv_addr, cli_addr;
-   int  n;
 
-   /* First call to socket() function */
-   sockfd = socket(AF_INET, SOCK_STREAM, 0);
+void *connection_handler(void *);
+bool heartbeat(int last_time, int new_time);
 
-   if (sockfd < 0) {
-      perror("ERROR opening socket");
-      exit(1);
-   }
 
-   /* Initialize socket structure */
-   bzero((char *) &serv_addr, sizeof(serv_addr));
-   portno = 5001;
+int main(int argc , char *argv[]){
+    int socket_desc , client_sock , c , *new_sock;
+    struct sockaddr_in server , client;
 
-   serv_addr.sin_family = AF_INET;
-   serv_addr.sin_addr.s_addr = INADDR_ANY;
-   serv_addr.sin_port = htons(portno);
+    //Create socket
+    socket_desc = socket(AF_INET , SOCK_STREAM , 0);
+    if (socket_desc == -1){
+        printf("Could not create socket");
+    }
 
-   /* Now bind the host address using bind() call.*/
-   if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-      perror("ERROR on binding");
-      exit(1);
-   }
+    //Prepare the sockaddr_in structure
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(5000);
 
-   /* Now start listening for the clients, here process will
-      * go in sleep mode and will wait for the incoming connection
-   */
+    // IMPLEMENTAR WAITING QUEUE
+    // Queue* waiting = init_queue(1);
 
-   listen(sockfd,5);
-   clilen = sizeof(cli_addr);
+    //Bind
+    if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0){
+        //print the error message
+        perror("bind failed. Error");
+        return 1;
+    }
 
-   /* Accept actual connection from the client */
-   newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+    //Listen
+    listen(socket_desc , 3);
 
-   if (newsockfd < 0) {
-      perror("ERROR on accept");
-      exit(1);
-   }
+    //Accept and incoming connection
+    c = sizeof(struct sockaddr_in);
 
-   /* If connection is established then start communicating */
-   bzero(buffer,256);
-   n = read( newsockfd,buffer,255 );
+    while( (client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) ){
 
-   if (n < 0) {
-      perror("ERROR reading from socket");
-      exit(1);
-   }
+        pthread_t sniffer_thread;
+        new_sock = malloc(1);
+        *new_sock = client_sock;
 
-   printf("Here is the message: %s\n",buffer);
+        if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) new_sock) < 0){
+            perror("could not create thread");
+            return 1;
+        }
+    }
 
-   /* Write a response to the client */
-   n = write(newsockfd,"I got your message",18);
+    if (client_sock < 0){
+        perror("accept failed");
+        return 1;
+    }
 
-   if (n < 0) {
-      perror("ERROR writing to socket");
-      exit(1);
-   }
+    return 0;
+}
 
-   return 0;
+/* This will handle connection for each client */
+void *connection_handler(void *socket_desc){
+    //Get the socket descriptor
+    int sock = *(int*)socket_desc;
+    int read_size = 0;
+    char client_message[1024] = {0};
+    // time_t heartbeat = time(0);
+
+    //Receive a message from client
+    while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 ){
+        //Send the message back to client
+        printf("%s\n", &client_message[0]);
+        write(sock , client_message , strlen(client_message));
+    }
+
+    if(read_size == 0){
+        printf("Client disconnected");
+        fflush(stdout);
+    }
+    else if(read_size == -1){
+        perror("recv failed");
+    }
+
+    //Free the socket pointer
+    free(socket_desc);
+
+    return 0;
+}
+
+bool heartbeat(int last_time, int new_time){
+    return new_time - last_time > 30;
 }
