@@ -1,23 +1,26 @@
 #include<stdio.h>
+#include<stdlib.h>
 #include<string.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<time.h>
-
-
-void answer_heartbeat(int sock, char message, time_t now);
+#include<pthread.h>
+#include"board.h"
+#include"requests.h"
 
 
 int main(int argc , char *argv[]){
     int sock;
     struct sockaddr_in server;
-    char server_reply[2000];
-    //time_t now = time(0);
+
     //Create socket
     sock = socket(AF_INET , SOCK_STREAM , 0);
     if (sock == -1){
         printf("Could not create socket");
     }
+
+    Board* board = init_board();
+    print_board(board);
 
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
     server.sin_family = AF_INET;
@@ -29,31 +32,37 @@ int main(int argc , char *argv[]){
         return 1;
     }
 
+    pthread_t sniffer_thread;
+    int *new_sock = malloc(1);
+    *new_sock = sock;
+
+    if( pthread_create( &sniffer_thread , NULL ,  listener , (void*) new_sock) < 0){
+        perror("could not create thread");
+        free(new_sock);
+        return 1;
+    }
+
+    char nickname[1024];
+    char message[1024] = {0};
+    printf("Choose your nickname: \n");
+    scanf("%s", nickname);
+    message[0] = 2;
+    message[1] = strlen(nickname);
+    for(int i = 0; i < strlen(nickname); i++){message[2 + i] = nickname[i];}
+    if(send(sock , message , strlen(message) , 0) < 0){return 1;}
+
     //keep communicating with server
     while(1){
-        char message[1024] = {0};
-        printf("Enter message: ");
+
+        printf("Select option: \n");
         scanf("%s" , message);
 
         //Send some data
         if(send(sock , message , strlen(message) , 0) < 0){
             return 1;
         }
-
-        //Receive a reply from the server
-        if(recv(sock , server_reply , 1024 , 0) < 0){
-            puts("recv failed");
-            break;
-        }
-
-        printf("Server reply: %s\n", server_reply);
     }
 
     close(sock);
     return 0;
-}
-
-void answer_heartbeat(int sock, char message, time_t now){
-  time(&now);
-  // responder message + now
 }

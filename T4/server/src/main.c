@@ -6,17 +6,17 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include "queue.h"
 
 
 void *connection_handler(void *);
-bool heartbeat(int last_time, int new_time);
+void heartbeat(int socket, int time, char* message);
+uint16_t ID;
 
 
 int main(int argc , char *argv[]){
     int socket_desc , client_sock , c , *new_sock;
     struct sockaddr_in server , client;
-
+    ID = 0;
     //Create socket
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
     if (socket_desc == -1){
@@ -27,9 +27,6 @@ int main(int argc , char *argv[]){
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(5000);
-
-    // IMPLEMENTAR WAITING QUEUE
-    // Queue* waiting = init_queue(1);
 
     //Bind
     if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0){
@@ -52,6 +49,7 @@ int main(int argc , char *argv[]){
 
         if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) new_sock) < 0){
             perror("could not create thread");
+            free(new_sock);
             return 1;
         }
     }
@@ -70,12 +68,35 @@ void *connection_handler(void *socket_desc){
     int sock = *(int*)socket_desc;
     int read_size = 0;
     char client_message[1024] = {0};
-    // time_t heartbeat = time(0);
+    int client_id;
 
     //Receive a message from client
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 ){
+        if(client_message[0] == 1){printf("Heartbeat\n");} // Heartbeat
+        else if(client_message[0] == 2){ // New user
+          printf("New user\n");
+          ID++;
+          client_id = ID;}
+        else if(client_message[0] == 4){ // Invitacion a jugar
+          printf("Invitacion a jugar\n");
+        }
+        else if(client_message[0] == 6){ // Chat
+          printf("chat\n");
+        }
+        else if(client_message[0] == 8){ // Move
+          printf("Move\n");
+        }
+        else if(client_message[0] == 9){ // Disconnect
+          printf("Disconnect\n");
+        }
+        else if(client_message[0] == 14){ // ServerInfo
+          printf("ServerInfo\n");
+        }
+        else if(client_message[0] == 15){ // PacketSupport
+          printf("PacketSupport\n");
+        }
+        else{printf("Invalid ID");}
         //Send the message back to client
-        printf("%s\n", &client_message[0]);
         write(sock , client_message , strlen(client_message));
     }
 
@@ -93,6 +114,32 @@ void *connection_handler(void *socket_desc){
     return 0;
 }
 
-bool heartbeat(int last_time, int new_time){
-    return new_time - last_time > 30;
+void *timer(void* is_running){
+  bool finished = (bool*)is_running;
+  sleep(10);
+  finished = 1;
+  return 0;}
+
+void PacketSupport(int socket){
+  unsigned char packets[10];
+  packets[0] = (uint8_t)15;
+  packets[1] = (uint8_t)8;
+  packets[2] = (uint8_t)1;
+  packets[3] = (uint8_t)2;
+  packets[4] = (uint8_t)4;
+  packets[5] = (uint8_t)6;
+  packets[6] = (uint8_t)8;
+  packets[7] = (uint8_t)9;
+  packets[8] = (uint8_t)14;
+  packets[9] = (uint8_t)15;
+  write(socket , &packets, strlen(&packets));
+}
+
+void heartbeat(int socket, int time, char* message){
+    unsigned char heartbeat_ans[3];
+    heartbeat_ans[0] = 1;
+    heartbeat_ans[1] = 1;
+    heartbeat_ans[2] = "a";
+    write(socket , &heartbeat_ans , strlen(&heartbeat_ans));
+    sleep(10);
 }
