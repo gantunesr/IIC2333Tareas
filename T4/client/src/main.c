@@ -5,6 +5,7 @@
 #include<arpa/inet.h>
 #include<time.h>
 #include<pthread.h>
+#include<stdbool.h>
 #include"board.h"
 #include"requests.h"
 
@@ -50,7 +51,9 @@ int main(int argc , char *argv[]){
     message[1] = strlen(nickname);
     for(int i = 0; i < strlen(nickname); i++){message[2 + i] = nickname[i];}
     if(send(sock , message , strlen(message) , 0) < 0){return 1;}
-
+    bool playing = 0;
+    uint16_t opponent;
+    
     //keep communicating with server
     while(1){
 

@@ -11,7 +11,7 @@ void *listener(void *socket){
   //Receive a reply from the server
   while(1){
     if(recv(sock , server_reply , 1024 , 0) < 0){
-        puts("recv failed");
+        puts("recv failed\n");
         break;
     }
     if(server_reply[0] == 1){
