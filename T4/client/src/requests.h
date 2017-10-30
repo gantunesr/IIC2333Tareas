@@ -1,6 +1,8 @@
 void heartbeat(int sock, char* reply);
 
-void get_players(int sock);
+int get_players(int sock);
+
+int match_request(int sock, char* opponent);
 
 int disconnect_server(int sock);
 

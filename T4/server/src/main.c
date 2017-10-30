@@ -30,7 +30,7 @@ int main(int argc , char *argv[]){
     //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(5000);
+    server.sin_port = htons(8080);
 
     //Bind
     if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0){
@@ -88,6 +88,7 @@ void *connection_handler(void *socket_desc){
         }
         else if(client_message[0] == 4){ // Invitacion a jugar
           printf("Invitacion a jugar\n");
+          match_request(sock, waiting, &client_message);
         }
         else if(client_message[0] == 6){ // Chat
           printf("chat\n");

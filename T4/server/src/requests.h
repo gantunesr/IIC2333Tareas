@@ -9,6 +9,8 @@ void new_user(int sock, Queue* waiting, char* reply);
 
 void PlayersList(int sock, Queue* waiting);
 
+void match_request(int sock, Queue* waiting, char* client_message);
+
 void PacketSupport(int sock);
 
 void user_disconnect(int sock, Queue* waiting);

@@ -27,7 +27,7 @@ int main(int argc , char *argv[]){
 
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
     server.sin_family = AF_INET;
-    server.sin_port = htons(5000);
+    server.sin_port = htons(8080);
 
     //Connect to remote server
     if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0){
@@ -56,12 +56,12 @@ int main(int argc , char *argv[]){
     for(int i = 0; i < strlen(nickname); i++){message[2 + i] = nickname[i];}
     if(send(sock , message , strlen(message) , 0) < 0){return 1;}
     bool waiting = 1;
-    // uint16_t opponent;
+    char opponent = 0;
 
     //keep communicating with server
     while(1){
       message[0] = 0;
-      if(waiting){
+      if(!message[0] && waiting){
         printf("Select option: \n");
         printf("\t1: Players List\n");
         printf("\t2: Match Request\n");
@@ -73,6 +73,7 @@ int main(int argc , char *argv[]){
       }
       else if(atoi(&message[0]) == 2){
         printf("Match request X\n");
+        match_request(sock, &opponent);
       }
       else if(atoi(&message[0]) == 3){
         destroy_board(board);

@@ -52,6 +52,16 @@ void PlayersList(int sock, Queue* waiting){
   write(sock , players , strlen(players));
 }
 
+void match_request(int sock, Queue* waiting, char* client_message){
+  uint16_t opponent = atoi(&client_message[2]);
+  printf("Opponent: %d\n", opponent);
+  if(opponent != sock && inqueue(waiting, opponent)){
+    printf("Encontró rival\n");
+    return;
+  }
+  printf("No esta el rival\n");
+}
+
 void heartbeat(int socket, int time, char* message){
     unsigned char heartbeat_ans[3];
     heartbeat_ans[0] = 1;

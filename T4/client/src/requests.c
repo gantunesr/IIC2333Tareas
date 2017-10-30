@@ -18,12 +18,28 @@ void heartbeat(int sock, char* reply){
   buffer[3] = (int)now;
 }
 
-void get_players(int sock){
+int get_players(int sock){
   printf("Get player list\n");
   char message[2];
   message[0] = (uint8_t)3;
   message[1] = (uint8_t)0;
-  send(sock , message , strlen(message) , 0);
+  if(send(sock , message , strlen(message) , 0) < 0){
+    return 1;
+  }
+  return 0;
+}
+
+int match_request(int sock, char* opponent){
+  printf("Opponents ID's: \n");
+  scanf("%s", opponent);
+  char answer[3];
+  answer[0] = 4;
+  answer[1] = 2;
+  answer[2] = *opponent;
+  if(send(sock , answer , strlen(answer) , 0) < 0){
+    return 1;
+  }
+  return 0;
 }
 
 int disconnect_server(int sock){
