@@ -49,6 +49,9 @@ void print_board(Board* board){
   }
 }
 
-void destroy_board(Board* board){
+void free_board(Board* board){
+  for(int i = 0; i < 8; i++){
+    free(board->cells[i]);
+  }
   free(board);
 }

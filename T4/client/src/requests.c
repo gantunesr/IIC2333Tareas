@@ -1,25 +1,10 @@
-#include"requests.h"
-#include<time.h>
-#include<stdio.h>
-#include<sys/socket.h>
-
-
-void *listener(void *socket){
-  int sock = *(int*)socket;
-  char server_reply[2000];
-
-  //Receive a reply from the server
-  while(1){
-    if(recv(sock , server_reply , 1024 , 0) < 0){
-        puts("recv failed\n");
-        break;
-    }
-    if(server_reply[0] == 1){
-      heartbeat(sock, &server_reply);
-    }
-  }
-  return 0;
-}
+#include <time.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
+#include "requests.h"
 
 
 void heartbeat(int sock, char* reply){
@@ -31,4 +16,30 @@ void heartbeat(int sock, char* reply){
   buffer[1] = 2;
   buffer[2] = reply[1];
   buffer[3] = (int)now;
+}
+
+void get_players(int sock){
+  printf("Get player list\n");
+  char message[2];
+  message[0] = (uint8_t)3;
+  message[1] = (uint8_t)0;
+  send(sock , message , strlen(message) , 0);
+}
+
+int disconnect_server(int sock){
+  char message[2];
+  message[0] = (uint8_t)9;
+  message[1] = (uint8_t)0;
+  if(send(sock , message , strlen(message) , 0) < 0){
+      return 1;
+  }
+  return 0;
+}
+
+
+// Listener methods
+void print_players(char* players){
+  for(int i = 0; i < players[1]; i++){
+    printf("%d\n", players[2 + i]);
+  }
 }

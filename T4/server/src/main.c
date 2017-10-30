@@ -7,7 +7,10 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include "requests.h"
-#include "queue.h"
+#include "board.h"
+
+
+Queue* waiting;
 
 
 void *connection_handler(void *);
@@ -16,6 +19,7 @@ void *connection_handler(void *);
 int main(int argc , char *argv[]){
     int socket_desc , client_sock , c , *new_sock;
     struct sockaddr_in server , client;
+    waiting = init_queue(1);
 
     //Create socket
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
@@ -52,6 +56,7 @@ int main(int argc , char *argv[]){
             free(new_sock);
             return 1;
         }
+        else{insert_queue(waiting, *new_sock);}
     }
 
     if (client_sock < 0){
@@ -69,12 +74,17 @@ void *connection_handler(void *socket_desc){
     printf("SOCK: %d\n", sock);
     int read_size = 0;
     char client_message[1024] = {0};
+    insert_queue(waiting, sock);
 
     //Receive a message from client
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 ){
         if(client_message[0] == 1){printf("Heartbeat\n");} // Heartbeat
         else if(client_message[0] == 2){ // New user
-          printf("New user\n");
+          new_user(sock, waiting, client_message);
+        }
+        else if(client_message[0] == 3){ // Jugadores Disponibles
+          printf("Players List\n");
+          PlayersList(sock, waiting);
         }
         else if(client_message[0] == 4){ // Invitacion a jugar
           printf("Invitacion a jugar\n");
@@ -86,7 +96,11 @@ void *connection_handler(void *socket_desc){
           printf("Move\n");
         }
         else if(client_message[0] == 9){ // Disconnect
-          printf("Disconnect\n");
+          user_disconnect(sock, waiting);
+          printf("Client disconnected correctly\n");
+          free(socket_desc);
+          close(socket_desc);
+          return 0;
         }
         else if(client_message[0] == 14){ // ServerInfo
           printf("ServerInfo\n");
@@ -94,9 +108,11 @@ void *connection_handler(void *socket_desc){
         else if(client_message[0] == 15){ // PacketSupport
           printf("PacketSupport\n");
         }
-        else{printf("Invalid ID");}
+        else{printf("Invalid ID\n");}
+
+        client_message[0] = 0;
         //Send the message back to client
-        write(sock , client_message , strlen(client_message));
+        // write(sock , client_message , strlen(client_message));
     }
 
     if(read_size == 0){
@@ -109,6 +125,7 @@ void *connection_handler(void *socket_desc){
 
     //Free the socket pointer
     free(socket_desc);
+    remove_queue(waiting, sock);
 
     return 0;
 }
