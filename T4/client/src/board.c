@@ -249,6 +249,7 @@ void destroy_board(Board* board){
 
 
 // Para probar el ajedrez
+// gcc -o chess board.c
 /*
 int main() {
 
