@@ -109,8 +109,7 @@ void *connection_handler(void *socket_desc){
         else if(client_message[0] == 9){ // Disconnect
           user_disconnect(sock, waiting);
           printf("Client disconnected correctly\n");
-          free(socket_desc);
-          close(socket_desc);
+          close((int)socket_desc);
           return 0;
         }
         else if(client_message[0] == 14){ // ServerInfo
@@ -135,7 +134,7 @@ void *connection_handler(void *socket_desc){
     }
 
     //Free the socket pointer
-    free(socket_desc);
+    close((int)socket_desc);
     remove_queue(waiting, sock);
 
     return 0;
