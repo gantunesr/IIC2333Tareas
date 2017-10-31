@@ -11,11 +11,14 @@
 
 
 void *listener(void *);
+pthread_mutex_t lock;
+bool color, waiting;
 
 
 int main(int argc , char *argv[]){
     int sock;
     struct sockaddr_in server;
+    pthread_mutex_init(&lock, NULL);
 
     //Create socket
     sock = socket(AF_INET , SOCK_STREAM , 0);
@@ -57,17 +60,21 @@ int main(int argc , char *argv[]){
     if(send(sock , message , strlen(message) , 0) < 0){return 1;}
     bool waiting = 1;
     char opponent = 0;
+    color = 0;
 
     //keep communicating with server
     while(1){
-      message[0] = 0;
-      if(!message[0] && waiting){
+      pthread_mutex_lock(&lock);
+      memset(message, 0, 1024 * sizeof(char));
+      if(waiting){
         printf("Select option: \n");
         printf("\t1: Players List\n");
         printf("\t2: Match Request\n");
         printf("\t3: Disconnect\n");
       }
       scanf("%c" , &message[0]);
+      pthread_mutex_unlock(&lock);
+      usleep(200);
       if(atoi(&message[0]) == 1){
         get_players(sock);
       }
@@ -109,8 +116,24 @@ void *listener(void *socket){
       heartbeat(sock, &server_reply);
     }
     else if(server_reply[0] == 3){
-      printf("print player list\n");
+      printf("Player List\n");
       print_players(server_reply);
+    }
+    else if(server_reply[0] == 4){
+      printf("Recieve answer for invitation\n");
+      if(atoi(&server_reply[2])){
+        color = 0;
+        waiting = 0;
+    }
+    else if(server_reply[0] == 5){
+      printf("Invitacion a jugar\n");
+      pthread_mutex_lock(&lock);
+      if(invite_to_play(sock, server_reply)){
+        printf("Se envio un sí como respuesta\n");
+        color = 1;
+        waiting = 0;
+      }
+      pthread_mutex_unlock(&lock);
     }
   }
   return 0;

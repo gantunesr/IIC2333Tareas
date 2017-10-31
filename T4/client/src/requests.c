@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include "requests.h"
 
@@ -58,4 +59,16 @@ void print_players(char* players){
   for(int i = 0; i < players[1]; i++){
     printf("%d\n", players[2 + i]);
   }
+}
+
+int invite_to_play(int sock, char* message){
+  printf("%d wants to play a match with you(0 no, otro si)\n", message[2]);
+  char answer = 0;
+  scanf("%s", &answer);
+  char respond[3];
+  respond[0] = 5;
+  respond[1] = 1;
+  respond[2] = (bool)answer;
+  if(send(sock, respond, strlen(respond), 0) < 0 || !answer){return 0;}
+  return 1;
 }

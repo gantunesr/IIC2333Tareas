@@ -11,6 +11,7 @@
 
 
 Queue* waiting;
+int opponents[1024];
 
 
 void *connection_handler(void *);
@@ -88,7 +89,16 @@ void *connection_handler(void *socket_desc){
         }
         else if(client_message[0] == 4){ // Invitacion a jugar
           printf("Invitacion a jugar\n");
-          match_request(sock, waiting, &client_message);
+          if(match_request(sock, waiting, client_message)){
+            printf("Saving opponent %d\n", atoi(&client_message[2]));
+            opponents[sock] = atoi(&client_message[2]);
+            opponents[atoi(&client_message[2])] = sock;
+          }
+        }
+        else if(client_message[0] == 5){ // Confirmacion a jugar
+          printf("Confirmacion para jugar\n");
+          accept_match(sock, client_message, opponents[sock]);
+
         }
         else if(client_message[0] == 6){ // Chat
           printf("chat\n");

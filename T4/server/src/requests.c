@@ -3,19 +3,20 @@
 #include<string.h>
 #include<stdlib.h>
 #include<stdint.h>
+#include<stdio.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include"requests.h"
 
 
-void *timer(void* is_running){
+/*void *timer(void* is_running){
   bool finished = (bool*)is_running;
   sleep(10);
   finished = 1;
   return 0;}
-
+*/
 void PacketSupport(int sock){
-  unsigned char packets[10];
+  char packets[10];
   packets[0] = (uint8_t)15;
   packets[1] = (uint8_t)8;
   packets[2] = (uint8_t)1;
@@ -26,7 +27,7 @@ void PacketSupport(int sock){
   packets[7] = (uint8_t)9;
   packets[8] = (uint8_t)14;
   packets[9] = (uint8_t)15;
-  write(socket , &packets, strlen(&packets));
+  write(sock , packets, strlen(packets));
 }
 
 void new_user(int sock, Queue* waiting, char* reply){
@@ -35,6 +36,7 @@ void new_user(int sock, Queue* waiting, char* reply){
   user_id[0] = 2;
   user_id[1] = 2;
   user_id[2] = (uint16_t)sock;
+  write(sock, user_id, strlen(user_id));
 }
 
 void PlayersList(int sock, Queue* waiting){
@@ -52,22 +54,32 @@ void PlayersList(int sock, Queue* waiting){
   write(sock , players , strlen(players));
 }
 
-void match_request(int sock, Queue* waiting, char* client_message){
+int match_request(int sock, Queue* waiting, char* client_message){
   uint16_t opponent = atoi(&client_message[2]);
-  printf("Opponent: %d\n", opponent);
-  if(opponent != sock && inqueue(waiting, opponent)){
-    printf("Encontró rival\n");
-    return;
+  if((opponent != sock) && inqueue(waiting, opponent)){
+    char message[3];
+    message[0] = 5;
+    message[1] = 2;
+    message[2] = sock;
+    write(opponent, message, strlen(message));
+    printf("Invitacion Enviada a %d\n", opponent);
+    return 1;
   }
-  printf("No esta el rival\n");
+  return 0;
+}
+
+void accept_match(int sock, char* client_message, int opponent){
+  client_message[0] = 4;
+  write(opponent, client_message, strlen(client_message));
+  printf("Message send to %d\n", opponent);
 }
 
 void heartbeat(int socket, int time, char* message){
-    unsigned char heartbeat_ans[3];
+    char heartbeat_ans[3];
     heartbeat_ans[0] = 1;
     heartbeat_ans[1] = 1;
     heartbeat_ans[2] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[random() % 26];
-    write(socket , &heartbeat_ans , strlen(&heartbeat_ans));
+    write(socket , heartbeat_ans , strlen(heartbeat_ans));
     sleep(10);
 }
 

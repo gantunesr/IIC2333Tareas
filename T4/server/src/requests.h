@@ -9,7 +9,9 @@ void new_user(int sock, Queue* waiting, char* reply);
 
 void PlayersList(int sock, Queue* waiting);
 
-void match_request(int sock, Queue* waiting, char* client_message);
+int match_request(int sock, Queue* waiting, char* client_message);
+
+void accept_match(int sock, char* client_message, int opponent);
 
 void PacketSupport(int sock);
 

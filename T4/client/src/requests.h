@@ -9,3 +9,5 @@ int disconnect_server(int sock);
 
 // Listener method
 void print_players(char* players);
+
+int invite_to_play(int sock, char* message);
