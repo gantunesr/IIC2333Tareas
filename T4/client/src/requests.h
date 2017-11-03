@@ -1,4 +1,4 @@
-void heartbeat(int sock, char* reply);
+int heartbeat(int sock, char* reply);
 
 int get_players(int sock);
 

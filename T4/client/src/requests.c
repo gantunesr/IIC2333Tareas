@@ -8,15 +8,18 @@
 #include "requests.h"
 
 
-void heartbeat(int sock, char* reply){
+int heartbeat(int sock, char* reply){
   time_t now = time(0);
   time(&now);
-  printf("Llego un heartbeat\n");
-  unsigned char buffer[4];
+  char buffer[7];
   buffer[0] = reply[0];
-  buffer[1] = 2;
-  buffer[2] = reply[1];
+  buffer[1] = 5;
+  buffer[2] = reply[2];
   buffer[3] = (int)now;
+  if(send(sock , buffer , strlen(buffer) , 0) < 0){
+    return 1;
+  }
+  return 0;
 }
 
 int get_players(int sock){

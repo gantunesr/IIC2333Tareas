@@ -9,12 +9,20 @@
 #include"requests.h"
 
 
-/*void *timer(void* is_running){
-  bool finished = (bool*)is_running;
-  sleep(10);
-  finished = 1;
-  return 0;}
-*/
+void *heartbeat(void* socket){
+  uint16_t sock = *(int*)socket;
+  while(1){
+    char heartbeat_ans[3];
+    heartbeat_ans[0] = 1;
+    heartbeat_ans[1] = 1;
+    heartbeat_ans[2] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[random() % 26];
+    if(write(sock , heartbeat_ans , strlen(heartbeat_ans)) < 0 ){
+      return 0;
+    }
+    sleep(10);
+  }
+}
+
 void PacketSupport(int sock){
   char packets[10];
   packets[0] = (uint8_t)15;
@@ -72,15 +80,6 @@ void accept_match(int sock, char* client_message, int opponent){
   client_message[0] = 4;
   write(opponent, client_message, strlen(client_message));
   printf("Message send to %d\n", opponent);
-}
-
-void heartbeat(int socket, int time, char* message){
-    char heartbeat_ans[3];
-    heartbeat_ans[0] = 1;
-    heartbeat_ans[1] = 1;
-    heartbeat_ans[2] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[random() % 26];
-    write(socket , heartbeat_ans , strlen(heartbeat_ans));
-    sleep(10);
 }
 
 void user_disconnect(int sock, Queue* waiting){

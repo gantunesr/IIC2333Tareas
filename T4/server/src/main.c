@@ -48,12 +48,17 @@ int main(int argc , char *argv[]){
 
     while( (client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) ){
 
-        pthread_t sniffer_thread;
+        pthread_t sniffer_thread, heart_thread;
         new_sock = malloc(1);
         *new_sock = client_sock;
 
         if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) new_sock) < 0){
             perror("could not create thread\n");
+            free(new_sock);
+            return 1;
+        }
+        if( pthread_create( &heart_thread , NULL ,  heartbeat , (void*) new_sock) < 0){
+            perror("could not create heartbeat\n");
             free(new_sock);
             return 1;
         }
@@ -76,10 +81,21 @@ void *connection_handler(void *socket_desc){
     int read_size = 0;
     char client_message[1024] = {0};
     insert_queue(waiting, sock);
+    int last_beat = 0;
 
     //Receive a message from client
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 ){
-        if(client_message[0] == 1){printf("Heartbeat\n");} // Heartbeat
+        if(client_message[0] == 1){ // Heartbeat
+          client_message[3] = (int)client_message[3];
+          if(!last_beat){last_beat = client_message[3];}
+          else if(client_message[3] - last_beat > 30){
+            printf("TIME OUT\tID: %d\n", sock);
+            close((int)socket_desc);
+            remove_queue(waiting, sock);
+            return 0;
+          }
+          else{last_beat = client_message[3];}
+        }
         else if(client_message[0] == 2){ // New user
           new_user(sock, waiting, client_message);
         }

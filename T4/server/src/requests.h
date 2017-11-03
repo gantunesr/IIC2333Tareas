@@ -1,7 +1,7 @@
 #include "queue.h"
 
 
-void heartbeat(int socket, int time, char* message);
+void *heartbeat(void* socket);
 
 void *timer(void* is_running);
 
