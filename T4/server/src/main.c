@@ -40,6 +40,9 @@ int main(int argc , char *argv[]){
         return 1;
     }
 
+    printf("\nCHESS SERVER\n");
+    printf("============\n\n");
+
     //Listen
     listen(socket_desc , 3);
 
@@ -117,7 +120,7 @@ void *connection_handler(void *socket_desc){
 
         }
         else if(client_message[0] == 6){ // Chat
-          printf("chat\n");
+          printf("Chat\n");
         }
         else if(client_message[0] == 8){ // Move
           printf("Move\n");

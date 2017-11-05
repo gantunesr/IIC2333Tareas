@@ -8,7 +8,7 @@
 #include "requests.h"
 
 
-int heartbeat(int sock, char* reply){
+int heartbeat(int sock, char* reply) {
   time_t now = time(0);
   time(&now);
   char buffer[7];
@@ -56,7 +56,6 @@ int disconnect_server(int sock){
   return 0;
 }
 
-
 // Listener methods
 void print_players(char* players){
   for(int i = 0; i < players[1]; i++){
@@ -65,7 +64,7 @@ void print_players(char* players){
 }
 
 int invite_to_play(int sock, char* message){
-  printf("%d wants to play a match with you(0 no, otro si)\n", message[2]);
+  printf("%d wants to play a match with you (0 no, other yes)\n", message[2]);
   char answer = 0;
   scanf("%s", &answer);
   char respond[3];
@@ -74,4 +73,21 @@ int invite_to_play(int sock, char* message){
   respond[2] = (bool)answer;
   if(send(sock, respond, strlen(respond), 0) < 0 || !answer){return 0;}
   return 1;
+}
+
+void send_play(int sock, uint8_t oc, uint8_t or, uint8_t nc, uint8_t nr) {
+  /*
+  oc: original piece column in the board
+  or: original piece row in the board
+  nc: next piece column in the board
+  nr: next piece row in the board
+  */
+  char* buffer = malloc(4*sizeof(char));
+  buffer[0] = oc;
+  buffer[1] = or;
+  buffer[2] = nc;
+  buffer[3] = nr;
+  for (int i = 0; i < 4; i++){
+    if (send(sock, &buffer[i], 4, 0) < 0) puts("Error: New move message failed");
+  }
 }

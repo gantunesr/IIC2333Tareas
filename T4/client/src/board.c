@@ -12,7 +12,7 @@ Board* init_board(){
    return board;
  }
 
-Piece* init_piece(int r, int c, int player, wint_t piece) {
+Piece* init_piece(uint8_t r, uint8_t c, int player, wint_t piece) {
    Piece* new = malloc(sizeof(Piece));
    new->c = c;
    new->r = r;
@@ -111,7 +111,7 @@ int get_column(char c[0]) {
   return -1;
 }
 
-bool valid_move(Board* board, Piece* piece, int c, int r) {
+bool valid_move(Board* board, Piece* piece, uint8_t c, uint8_t r) {
   // Si la pieza existe en el juego
   if (!piece->alive) return false;
   // Jugada que sale del tablero
@@ -141,12 +141,12 @@ bool valid_move(Board* board, Piece* piece, int c, int r) {
   return false;
 }
 
-bool in_board(int r, int c) {
+bool in_board(uint8_t r, uint8_t c) {
   if ((r >= 0 || r <= 7) && (c >= 0 || c <= 7)) return true;
   return false;
 }
 
-bool valid_pawn_move(Piece* piece, int c, int r, bool oc) {
+bool valid_pawn_move(Piece* piece, uint8_t c, uint8_t r, bool oc) {
   if (piece->player == 1) {
     if (oc) {
 
@@ -168,7 +168,7 @@ bool valid_pawn_move(Piece* piece, int c, int r, bool oc) {
   return false;
 }
 
-bool valid_tower_move(Board* board, Piece* piece, int c, int r, bool oc) {
+bool valid_tower_move(Board* board, Piece* piece, uint8_t c, uint8_t r, bool oc) {
   int new_r = abs(r - piece->r);
   int new_c = abs(c - piece->c);
   if (new_c == 0) {
@@ -195,14 +195,14 @@ bool valid_tower_move(Board* board, Piece* piece, int c, int r, bool oc) {
   return false;
 }
 
-bool valid_horse_move(Piece* piece, int c, int r, bool oc) {
+bool valid_horse_move(Piece* piece, uint8_t c, uint8_t r, bool oc) {
   int new_r = abs(r - piece->r);
   int new_c = abs(c - piece->c);
   if (new_r + new_c == 3) return true;
   return false;
 }
 
-bool valid_bishop_move(Board* board, Piece* piece, int c, int r, bool oc) {
+bool valid_bishop_move(Board* board, Piece* piece, uint8_t c, uint8_t r, bool oc) {
   int new_r = abs(r - piece->r);
   int new_c = abs(c - piece->c);
   if (r > piece->r && c > piece->c) {
@@ -221,14 +221,14 @@ bool valid_bishop_move(Board* board, Piece* piece, int c, int r, bool oc) {
   return false;
 }
 
-bool valid_queen_move(Piece* piece, int c, int r, bool oc) {
+bool valid_queen_move(Piece* piece, uint8_t c, uint8_t r, bool oc) {
   int new_r = abs(r - piece->r);
   int new_c = abs(c - piece->c);
   if (new_r < 2 && new_c < 2) return true;
   return false;
 }
 
-bool valid_king_move(Board* board, Piece* piece, int c, int r, bool oc) {
+bool valid_king_move(Board* board, Piece* piece, uint8_t c, uint8_t r, bool oc) {
   if (valid_bishop_move(board, piece, c, r, oc)) return true;
   else if(valid_tower_move(board, piece, c, r, oc)) return true;
   return false;

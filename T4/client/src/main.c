@@ -53,7 +53,7 @@ int main(int argc , char *argv[]){
     char nickname[1024];
     char message[1024] = {0};
 
-    printf("Choose your nickname: \n");
+    printf("Choose your nickname: ");
     scanf("%s", nickname);
 
     message[0] = 2;
@@ -64,19 +64,26 @@ int main(int argc , char *argv[]){
     char opponent = 0;
     color = 0;
 
+    // Game variables
+    bool in_lobby = 1;
+    bool playing = 0;
+
     //keep communicating with server
-    while(1){
+    while(in_lobby){
       pthread_mutex_lock(&lock);
       memset(message, 0, 1024 * sizeof(char));
       if(waiting){
+        usleep(200);
+        printf("\n\n\n");
         printf("Select option: \n");
         printf("\t1: Players List\n");
         printf("\t2: Match Request\n");
         printf("\t3: Disconnect\n");
-        scanf("%c" , &message[0]);
+        scanf("%s" , &message[0]);
 
         pthread_mutex_unlock(&lock);
         usleep(200);
+
         if(atoi(&message[0]) == 1){
           get_players(sock);
         }
@@ -97,6 +104,10 @@ int main(int argc , char *argv[]){
         }
         else{printf("Not valid\n");}
       }
+    }
+
+    while(playing) {
+      
     }
 
     close(sock);
@@ -124,7 +135,7 @@ void *listener(void *socket){
       print_players(server_reply);
     }
     else if(server_reply[0] == 4){
-      printf("Recieve answer for invitation %d\n", atoi(&server_reply[2]));
+      printf("Receive answer for invitation %d\n", atoi(&server_reply[2]));
       if(atoi(&server_reply[2])){
         color = 0;
         waiting = 0;
